@@ -1,0 +1,6 @@
+fastapi
+asyncpg
+python-dotenv
+uvicorn
+pydantic
+psycopg2
