@@ -1,18 +1,19 @@
-# Use official Python image with slim variant for smaller size
-FROM python:3.12-slim
+FROM python:3.11-slim
 
-# Set working directory
+RUN apt-get update && apt-get install -y \
+    build-essential \
+    curl \
+    && rm -rf /var/lib/apt/lists/*
+
+RUN pip install poetry
+
 WORKDIR /app
 
-# Install dependencies directly using pip
-COPY requirements.txt .
-RUN pip install -r requirements.txt
+COPY pyproject.toml poetry.lock* ./
 
-# Copy project files
+RUN poetry config virtualenvs.create false \
+    && poetry install --no-root
+
 COPY . .
 
-# Expose the port
-EXPOSE 8000
-
-# Run the FastAPI app
-CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
+CMD ["poetry", "run", "uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]

@@ -1,0 +1,32 @@
+[tool.poetry]
+name = "backend"  # Change to match your project directory name
+version = "0.1.0"
+description = "FastAPI Backend Project"
+authors = ["Your Name <your.email@example.com>"]
+packages = [{include = "app"}]  # Specify the package directory
+
+[tool.poetry.dependencies]
+python = "^3.11"
+fastapi = "^0.109.0"
+uvicorn = "^0.25.0"
+sqlalchemy = "^2.0.25"
+asyncpg = "^0.29.0"
+alembic = "^1.13.1"
+pydantic = "^2.6.1"
+pydantic-settings = "^2.1.0"
+python-jose = "^3.3.0"
+passlib = "^1.7.4"
+python-multipart = "^0.0.9"
+psycopg2-binary = "^2.9.9"
+
+[tool.poetry.group.dev.dependencies]  # Updated to new group syntax
+pytest = "^7.4.4"
+httpx = "^0.26.0"
+asynctest = "^0.13.0"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
+email-validator = "^2.1.0"
+
