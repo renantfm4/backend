@@ -1,32 +1,21 @@
-version: '3.8'
 services:
   web:
-    build: .
-    ports:
-      - "8000:8000"
-    depends_on:
-      - postgres
-    environment:
-      - DATABASE_URL=postgresql+asyncpg://user:password@postgres:5432/mydatabase
-
-  postgres:
-    image: postgres:16
-    environment:
-      POSTGRES_USER: user
-      POSTGRES_PASSWORD: password
-      POSTGRES_DB: mydatabase
+    build: ./project
+    command: poetry run uvicorn app.main:app --reload --workers 1 --host 0.0.0.0 --port 8000
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      - ./project:/usr/src/app
     ports:
-      - "5432:5432"
-
-  migration:
-    build: .
-    command: poetry run alembic upgrade head
-    depends_on:
-      - postgres
+      - 8004:8000
     environment:
-      - DATABASE_URL=postgresql+asyncpg://user:password@postgres:5432/mydatabase
+      - DATABASE_URL=postgresql+asyncpg://postgres:postgres@db:5432/foo
+    depends_on:
+      - db
 
-volumes:
-  postgres_data:
+  db:
+    image: postgres:15.3
+    expose:
+      - 5432
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=foo

@@ -1,7 +1,10 @@
-# backend
 
 
-1. Install Poetry: `pip install poetry`
-2. Install dependencies: `poetry install`
-3. Run migrations: `alembic upgrade head`
-4. Start server: `uvicorn app.main:app --reload`
+```sh
+$ docker-compose up -d --build
+$ docker-compose exec web alembic upgrade head
+```
+
+'sudo docker compose exec web poetry run alembic upgrade head'
+
+sudo docker compose exec web poetry run alembic revision --autogenerate -m "hello migration"

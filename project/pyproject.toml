@@ -1,0 +1,17 @@
+[tool.poetry]
+name = "your-project-name"
+version = "0.1.0"
+description = ""
+authors = ["Your Name <yourname@example.com>"]
+
+[tool.poetry.dependencies]
+python = "^3.11"
+alembic = "1.11.1"
+asyncpg = "0.28.0"
+fastapi = "0.100.0"
+sqlmodel = "0.0.8"
+uvicorn = "0.22.0"
+
+[build-system]
+requires = ["poetry>=1.0"]
+build-backend = "poetry.masonry.api"
