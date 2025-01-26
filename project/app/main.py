@@ -1,29 +1,21 @@
-from fastapi import Depends, FastAPI
-from sqlmodel import select
-from sqlmodel.ext.asyncio.session import AsyncSession
+from fastapi import FastAPI
+from app.api.routes import user_routes, audit_routes, group_routes, permission_routes, role_routes
+from app.database import models, database
+from contextlib import asynccontextmanager
 
-from app.db import get_session, init_db
-from app.models import Song, SongCreate
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    async with database.engine.begin() as conn:
+        await conn.run_sync(models.Base.metadata.create_all)
+    print("Database tables created successfully")
+    yield
+    print("Application is shutting down")
 
-app = FastAPI()
-
-
-@app.get("/ping")
-async def pong():
-    return {"ping": "pong!"}
-
-
-@app.get("/songs", response_model=list[Song])
-async def get_songs(session: AsyncSession = Depends(get_session)):
-    result = await session.execute(select(Song))
-    songs = result.scalars().all()
-    return [Song(name=song.name, artist=song.artist, year=song.year, id=song.id) for song in songs]
+app = FastAPI(lifespan=lifespan)
 
 
-@app.post("/songs")
-async def add_song(song: SongCreate, session: AsyncSession = Depends(get_session)):
-    song = Song(name=song.name, artist=song.artist, year=song.year)
-    session.add(song)
-    await session.commit()
-    await session.refresh(song)
-    return song
+app.include_router(user_routes.router)
+app.include_router(permission_routes.router)
+app.include_router(role_routes.router)
+app.include_router(group_routes.router)
+app.include_router(audit_routes.router)
