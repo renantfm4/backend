@@ -12,6 +12,10 @@ fastapi = "0.115.7"
 SQLAlchemy = "2.0.37"
 uvicorn = "0.34.0"
 bcrypt = "4.2.1"
+python-jose = "3.3.0"
+pydantic = { version = "2.10", extras = ["email"] }
+passlib = "1.7.4"
+python-multipart = "0.0.20"
 
 [build-system]
 requires = ["poetry>=1.0"]

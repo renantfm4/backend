@@ -2,6 +2,8 @@ services:
   web:
     build: ./project
     command: poetry run uvicorn app.main:app --reload --workers 1 --host 0.0.0.0 --port 8000
+    env_file:
+      - .env
     volumes:
       - ./project:/usr/src/app
     ports:
