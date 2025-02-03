@@ -18,7 +18,7 @@ async def get_user(db: AsyncSession, user_id: int):
     return result.scalars().first()
 
 async def authenticate_user(db: AsyncSession, cpf: str, password: str):
-    user = await get_user_by_cpf(db, cpf)  # Use await para obter o usuário
+    user = await get_user_by_cpf(db, cpf) 
     if not user or not verify_password(password, user.senha_hash):
         return False
     return user
@@ -47,7 +47,7 @@ async def get_current_user(
     except JWTError:
         raise credentials_exception
 
-    user = await get_user_by_cpf(db, cpf=cpf)  # Uso de await para função assíncrona
+    user = await get_user_by_cpf(db, cpf=cpf)
     if user is None:
         raise credentials_exception
     return user

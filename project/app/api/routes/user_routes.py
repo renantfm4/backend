@@ -80,18 +80,6 @@ async def update_user(
     await db.refresh(user)
     return user
 
-async def delete_user(
-    cpf: str, 
-    db: AsyncSession = Depends(get_db), 
-    current_user: models.User = Depends(get_current_user)
-):
-    user = await get_user(db, cpf)
-    if not user:
-        raise HTTPException(status_code=404, detail="Usuário não encontrado")
-    
-    db.delete(user)
-    await db.commit()
-    return
 
 # @router.post("/users/")
 # async def create_user_route(user: UserCreate, db: AsyncSession = Depends(get_db)):
