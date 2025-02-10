@@ -3,6 +3,8 @@ from app.api.routes import token_routes, user_routes, admin_routes, supervisor_r
 from app.database import models, database
 from app.database.seed import seed_data, populate_data
 from contextlib import asynccontextmanager
+from fastapi.middleware.cors import CORSMiddleware
+
 
 # from app.database.populate_db import populate_db
 
@@ -26,6 +28,19 @@ async def lifespan(app: FastAPI):
     print("Application is shutting down")
 
 app = FastAPI(lifespan=lifespan)
+
+origins = [
+    "http://localhost:8081", 
+  
+]
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
 
 app.include_router(token_routes.router, tags=["token"])
 app.include_router(user_routes.router, tags=["user"])
