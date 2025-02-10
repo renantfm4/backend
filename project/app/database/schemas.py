@@ -1,23 +1,6 @@
 from pydantic import BaseModel, EmailStr
 from typing import List, Optional
 
-# class UserCreate(BaseModel):
-#     username: str
-#     email: str
-#     password: str
-
-# class RoleCreate(BaseModel):
-#     name: str
-
-# class PermissionCreate(BaseModel):
-#     name: str
-#     details: str
-
-# class GroupCreate(BaseModel):
-#     name: str
-
-
-
 class UserBase(BaseModel):
     nome_usuario: str
     email: EmailStr
@@ -32,12 +15,11 @@ class UserUpdate(BaseModel):
     cpf: Optional[str] = None
     senha: Optional[str] = None
 
-class UserOut(UserBase):
-    id: int
-    is_active: bool
-
-    class Config:
-        orm_mode = True
+class AdminUserEdit(BaseModel):
+    cpf: Optional[str] = None
+    unidade_saude: Optional[int] = None
+    role_id: Optional[int] = None
+    is_active: Optional[bool] = None
 
 class Token(BaseModel):
     access_token: str
@@ -46,3 +28,27 @@ class Token(BaseModel):
 
 class TokenRefresh(BaseModel):
     refresh_token: str
+
+class UserInviteSchema(BaseModel):
+    message: str
+
+class UserCreateAdminSchema(BaseModel):
+    cpf: str
+    email: EmailStr
+    unidade_saude_id: int
+    role_id: int
+
+class CompleteUserSchema(BaseModel):
+    token: str
+    nome_usuario: str
+    senha: str
+
+class UserCreateSupervisorSchema(BaseModel):
+    email: EmailStr
+    cpf: str
+    role_id: int
+
+class SupervisorUserEdit(BaseModel):
+    cpf: Optional[str] = None
+    role_id: Optional[int] = None
+    is_active: Optional[bool] = None

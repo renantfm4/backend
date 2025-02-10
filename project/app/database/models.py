@@ -2,6 +2,7 @@ from sqlalchemy import Column, Integer, String, ForeignKey, Table, JSON, TIMESTA
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 from .database import Base
+from .baseMixin import AuditMixin
 
 # Association tables
 user_roles = Table(
@@ -10,18 +11,6 @@ user_roles = Table(
     Column('role_id', Integer, ForeignKey('roles.id'))
 )
 
-# role_permissions = Table(
-#     'role_permissions', Base.metadata,
-#     Column('role_id', Integer, ForeignKey('roles.id')),
-#     Column('permission_id', Integer, ForeignKey('permissions.id'))
-# )
-
-# user_permissions = Table(
-#     'user_permissions', Base.metadata,
-#     Column('user_id', Integer, ForeignKey('users.id')),
-#     Column('permission_id', Integer, ForeignKey('permissions.id'))
-# )
-
 user_unidadeSaude = Table(
     'user_unidadeSaude', Base.metadata,
     Column('user_id', Integer, ForeignKey('users.id')),
@@ -29,16 +18,16 @@ user_unidadeSaude = Table(
 )
 
 # Models
-class User(Base):
+class User(AuditMixin, Base):
     __tablename__ = 'users'
     id = Column(Integer, primary_key=True, index=True)
-    nome_usuario = Column(String(50), unique=True, index=True, nullable=False)
+    nome_usuario = Column(String(50), unique=True, index=True, nullable=True)
     email = Column(String(100), unique=True, index=True, nullable=False)
     cpf = Column(String(11), unique=True, index=True, nullable=False)
-    senha_hash = Column(String(255), nullable=False)
-    is_active = Column(Boolean, default=True)
+    senha_hash = Column(String(255), nullable=True)
+    is_active = Column(Boolean, default=False)
+
     roles = relationship('Role', secondary=user_roles, back_populates='users')
-    # permissions = relationship('Permission', secondary=user_permissions, back_populates='users')
     unidadeSaude = relationship('UnidadeSaude', secondary=user_unidadeSaude, back_populates='users')
 
 class UnidadeSaude(Base):
@@ -49,23 +38,14 @@ class UnidadeSaude(Base):
     codigo_unidade_saude = Column(String(50), unique=True, index=True, nullable=False)
     cidade_unidade_saude = Column(String(100), nullable=False)
     is_active = Column(Boolean, default=True)
-    users = relationship('User', secondary=user_unidadeSaude, back_populates='unidadeSaude')
+    users = relationship('User', secondary=user_unidadeSaude, back_populates='unidadeSaude')    
 
 class Role(Base):
     __tablename__ = 'roles'
     id = Column(Integer, primary_key=True, index=True)
     name = Column(String(50), unique=True, index=True, nullable=False)
+    nivel_acesso = Column(Integer, nullable=False, default=1)
     users = relationship('User', secondary=user_roles, back_populates='roles')
-    # permissions = relationship('Permission', secondary=role_permissions, back_populates='roles')
-
-# class Permission(Base):
-#     __tablename__ = 'permissions'
-#     id = Column(Integer, primary_key=True, index=True)
-#     name = Column(String(100), unique=True, index=True, nullable=False)
-#     details = Column(String(300), nullable=False)
-#     roles = relationship('Role', secondary=role_permissions, back_populates='permissions')
-    # users = relationship('User', secondary=user_permissions, back_populates='permissions')
-
 
 class Atendimento(Base):
     __tablename__ = 'atendimentos'
@@ -78,8 +58,6 @@ class Atendimento(Base):
     user = relationship('User')
     termo_consentimento_id = Column(Integer, ForeignKey('termoConsentimento.id'))
     termo_consentimento = relationship('TermoConsentimento')
-    unidade_saude_id = Column(Integer, ForeignKey('unidadeSaude.id'))
-    unidade_saude = relationship('UnidadeSaude')
     saude_geral_id = Column(Integer, ForeignKey('saudeGeral.id'))
     saude_geral = relationship('SaudeGeral')
     avaliacao_fototipo_id = Column(Integer, ForeignKey('avaliacao_fototipo.id'))

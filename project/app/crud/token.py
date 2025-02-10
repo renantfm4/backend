@@ -8,9 +8,10 @@ from jose import JWTError, jwt
 from ..core.config import SECRET_KEY, ALGORITHM, oauth2_scheme
 from fastapi import Depends, HTTPException, status
 from ..database.database import get_db
+from sqlalchemy.orm import selectinload
 
 async def get_user_by_cpf(db: AsyncSession, cpf: str):
-    result = await db.execute(select(User).filter(User.cpf == cpf))
+    result = await db.execute(select(User).options(selectinload(User.roles)).filter(User.cpf == cpf))
     return result.scalars().first()
 
 async def get_user(db: AsyncSession, user_id: int):
@@ -30,6 +31,28 @@ def create_access_token(data: dict, expires_delta: Optional[timedelta] = None) -
     encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
     return encoded_jwt
 
+# async def get_current_user(
+#     token: str = Depends(oauth2_scheme), 
+#     db: AsyncSession = Depends(get_db)
+# ) -> User:
+#     credentials_exception = HTTPException(
+#         status_code=status.HTTP_401_UNAUTHORIZED,
+#         detail="Não foi possível validar as credenciais",
+#         headers={"WWW-Authenticate": "Bearer"},
+#     )
+#     try:
+#         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+#         cpf: str = payload.get("sub")
+#         if cpf is None:
+#             raise credentials_exception
+#     except JWTError:
+#         raise credentials_exception
+
+#     user = await get_user_by_cpf(db, cpf=cpf)
+#     if user is None:
+#         raise credentials_exception
+#     return user
+
 async def get_current_user(
     token: str = Depends(oauth2_scheme), 
     db: AsyncSession = Depends(get_db)
@@ -47,7 +70,18 @@ async def get_current_user(
     except JWTError:
         raise credentials_exception
 
-    user = await get_user_by_cpf(db, cpf=cpf)
+    # Consulta com eager loading para o relacionamento 'unidadeSaude'
+    stmt = (
+        select(User)
+        .options(
+            selectinload(User.unidadeSaude),
+            selectinload(User.roles)
+            )
+        .filter(User.cpf == cpf)
+    )
+    result = await db.execute(stmt)
+    user = result.scalars().first()
+    
     if user is None:
-        raise credentials_exception
-    return user
+        raise credentials_exception 
+    return user  

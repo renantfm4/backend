@@ -5,14 +5,15 @@ from app.database.database import SessionLocal
 from app.core.security import get_password_hash
 import os
 
+from app.database.populate_db import populate_db
+
 FIXED_ROLES = ["Admin", "Supervisor", "Pesquisador"]
-# ADMIN_DATA = {
-#     "nome_usuario": "Administrador",
-#     "email": "admin@seusistema.com",
-#     "cpf": "00000000000",
-#     "senha": "senhaadmin", 
-#     "is_active": True,
-# }
+
+ROLE_LEVELS = {
+    "Admin": 3,
+    "Supervisor": 2,
+    "Pesquisador": 1
+}
 
 ADMIN_DATA = {
     "nome_usuario": os.getenv("ADMIN_NOME_INICIAL"),
@@ -29,7 +30,7 @@ async def seed_data():
 
         if not roles_existentes:
             for role_name in FIXED_ROLES:
-                role = Role(name=role_name)
+                role = Role(name=role_name, nivel_acesso=ROLE_LEVELS.get(role_name, 1))
                 session.add(role)
             await session.commit()
             print("Roles inseridas:", FIXED_ROLES)
@@ -56,3 +57,13 @@ async def seed_data():
             print("Usuário admin criado.")
         else:
             print("Usuário admin já existe.")
+
+async def populate_data():
+    # if database id empty, populate with seed 
+    async with SessionLocal() as session:
+        result = await session.execute(select(User))
+        users = result.scalars().all()
+        if not users:
+            await populate_db()
+        else:
+            print("Usuários já existem.")
