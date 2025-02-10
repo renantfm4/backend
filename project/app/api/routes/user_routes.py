@@ -2,6 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, BackgroundTasks
 from typing import List
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
+from sqlalchemy.orm import selectinload
 from ...database.database import get_db
 # from ...crud.user import create_user, assign_role_to_user, assign_permission_to_user, assign_user_to_group
 from ...database.schemas import UserCreate, UserUpdate, CompleteUserSchema #UserOut
@@ -42,6 +43,45 @@ async def completar_cadastro(user_data: CompleteUserSchema, db: AsyncSession = D
     await db.refresh(user)
 
     return {"message": "Cadastro completado com sucesso! Você já pode fazer login."}
+
+
+@router.get("/dados-completar-cadastro")
+async def dados_completar_cadastro(token: str, db: AsyncSession = Depends(get_db)):
+    email = verify_invite_token(token)
+    if not email:
+        raise HTTPException(status_code=400, detail="Token inválido ou expirado")
+    
+    stmt = select(models.User).filter(models.User.email == email).options(
+        selectinload(models.User.unidadeSaude)
+    )
+    result = await db.execute(stmt)
+    user = result.scalars().first()
+
+    if not user:
+        raise HTTPException(status_code=404, detail="Usuário não encontrado")
+
+    nome_unidade_saude = None
+    if user.unidadeSaude:
+        nome_unidade_saude = user.unidadeSaude[0].nome_unidade_saude
+
+    return {
+        "nome_usuario": user.nome_usuario,
+        "email": user.email,
+        "cpf": user.cpf,
+        "nome_unidade_saude": nome_unidade_saude
+    }
+    
+
+@router.get("/dados-resetar-senha")
+async def dados_resetar_senha(token: str):
+    # recebe token email, e retorna o email do usuario
+    
+    email = verify_invite_token(token)
+    if not email:
+        raise HTTPException(status_code=400, detail="Token inválido ou expirado")
+    
+    return {"email": email}
+
 
 @router.post("/esqueci-minha-senha")
 async def forgot_password(email: str, 

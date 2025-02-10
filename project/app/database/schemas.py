@@ -9,6 +9,7 @@ class UserBase(BaseModel):
 class UserCreate(UserBase):
     senha: str
 
+
 class UserUpdate(BaseModel):
     nome_usuario: Optional[str] = None
     email: Optional[EmailStr] = None
@@ -52,3 +53,35 @@ class SupervisorUserEdit(BaseModel):
     cpf: Optional[str] = None
     role_id: Optional[int] = None
     is_active: Optional[bool] = None
+
+
+class RoleOut(BaseModel):
+    id: int
+    name: str
+    nivel_acesso: int
+
+    class Config:
+        orm_mode = True
+
+class UnidadeSaudeOut(BaseModel):
+    id: int
+    nome_unidade_saude: str
+    nome_localizacao: str
+    codigo_unidade_saude: str
+    cidade_unidade_saude: str
+    is_active: bool
+
+    class Config:
+        orm_mode = True
+
+class UserOut(BaseModel):
+    id: int
+    nome_usuario: Optional[str] = None
+    email: EmailStr
+    cpf: str
+    is_active: bool
+    roles: List[RoleOut] = []
+    unidadeSaude: List[UnidadeSaudeOut] = []
+
+    class Config:
+        orm_mode = True

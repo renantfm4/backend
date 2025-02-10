@@ -15,7 +15,7 @@ from ...utils.send_email import send_invite_email
 
 router = APIRouter()
 
-@router.post("/supervisor/cadastrar-usuario", response_model=UserInviteSchema)
+@router.post("/supervisor/convidar-usuario", response_model=UserInviteSchema)
 async def cadastrar_usuario_supervisor(
     user_data: UserCreateSupervisorSchema, 
     background_tasks: BackgroundTasks,

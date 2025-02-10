@@ -16,7 +16,7 @@ from ...utils.send_email import send_invite_email
 
 router = APIRouter()
 
-@router.post("/admin/cadastrar-usuario", response_model=UserInviteSchema)
+@router.post("/admin/convidar-usuario", response_model=UserInviteSchema)
 async def cadastrar_usuario(user_data: UserCreateAdminSchema, 
                             background_tasks: BackgroundTasks,
                             db: AsyncSession = Depends(get_db),
