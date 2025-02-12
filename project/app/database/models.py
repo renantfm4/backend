@@ -26,6 +26,8 @@ class User(AuditMixin, Base):
     cpf = Column(String(11), unique=True, index=True, nullable=False)
     senha_hash = Column(String(255), nullable=True)
     is_active = Column(Boolean, default=False)
+    password_reset_token = Column(String(255), nullable=True)
+    password_reset_token_used = Column(Boolean, default=False)
 
     roles = relationship('Role', secondary=user_roles, back_populates='users')
     unidadeSaude = relationship('UnidadeSaude', secondary=user_unidadeSaude, back_populates='users')

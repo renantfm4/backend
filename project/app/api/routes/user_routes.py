@@ -59,6 +59,9 @@ async def dados_completar_cadastro(token: str, db: AsyncSession = Depends(get_db
 
     if not user:
         raise HTTPException(status_code=404, detail="Usuário não encontrado")
+    
+    if user.is_active:
+        raise HTTPException(status_code=400, detail="Usuário já completou o cadastro")
 
     nome_unidade_saude = None
     if user.unidadeSaude:
@@ -96,8 +99,14 @@ async def forgot_password(email: str,
 
     reset_token = generate_reset_token(email)
 
+    user.password_reset_token = reset_token
+    user.password_reset_token_used = False
+
     reset_link = f"sitebonito.com/resetar-senha?token={reset_token}"
     background_tasks.add_task(send_reset_password_email, email, reset_link)
+
+    await db.commit()
+    await db.refresh(user)
 
     return {"message": "E-mail de redefinição de senha enviado!"}
 
@@ -114,6 +123,11 @@ async def reset_password(token: str, nova_senha: str, db: AsyncSession = Depends
 
     if not user:
         raise HTTPException(status_code=404, detail="Usuário não encontrado")
+    
+    if user.password_reset_token_used:
+        raise HTTPException(status_code=400, detail="Token já utilizado")
+    
+    user.password_reset_token_used = True
 
     user.senha_hash = get_password_hash(nova_senha)
     user.id_usuario_atualizacao = user.id
