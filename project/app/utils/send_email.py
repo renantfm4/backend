@@ -21,6 +21,8 @@ def send_invite_email(email: str, invite_link: str):
     Atenciosamente,
     Equipe do Sistema.
     """
+
+    print("LINK TOKEN", invite_link)
     send_email(email, subject, body)
 
 def send_reset_password_email(email: str, reset_link: str):
@@ -37,6 +39,8 @@ def send_reset_password_email(email: str, reset_link: str):
     Atenciosamente,
     Equipe do Sistema.
     """
+
+    print("LINK TOKEN", reset_link)
     send_email(email, subject, body)
 
 
