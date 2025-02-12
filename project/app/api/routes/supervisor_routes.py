@@ -2,9 +2,10 @@ from fastapi import APIRouter, Depends, HTTPException, BackgroundTasks
 from typing import List
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
+from sqlalchemy.orm import selectinload
 from ...database.database import get_db
 # from ...crud.user import create_user, assign_role_to_user, assign_permission_to_user, assign_user_to_group
-from ...database.schemas import UserCreate, UserUpdate, UserInviteSchema, UserCreateSupervisorSchema, AdminUserEdit, SupervisorUserEdit
+from ...database.schemas import UserCreate, UserUpdate, UserInviteSchema, UserCreateSupervisorSchema, AdminUserEdit, SupervisorUserEdit, UserOut
 from ...core.security import get_password_hash
 from ...database import models
 from ...crud.token import get_user_by_cpf, get_user, get_current_user
@@ -79,55 +80,63 @@ async def cadastrar_usuario_supervisor(
     return {"message": "Convite enviado com sucesso!"}
 
 
-# @router.post("/supervisor/editar-usuario", response_model=UserInviteSchema)
-# async def editar_usuario_supervisor(
-#     user_data: SupervisorUserEdit,  # Schema contendo: cpf, role_id e is_active
-#     db: AsyncSession = Depends(get_db),
-#     current_user: models.User = Depends(require_role(RoleEnum.SUPERVISOR))
-# ):
-#     # Busca o usuário a ser editado pelo CPF
-#     stmt = select(models.User).filter(models.User.cpf == user_data.cpf)
-#     result = await db.execute(stmt)
-#     user = result.scalars().first()
+@router.post("/supervisor/editar-usuario", response_model=UserOut)
+async def editar_usuario_supervisor(
+    user_data: SupervisorUserEdit,  # Schema contendo: cpf, role_id e is_active
+    db: AsyncSession = Depends(get_db),
+    current_user: models.User = Depends(require_role(RoleEnum.SUPERVISOR))
+):
+    # Busca o usuário a ser editado pelo CPF
+    # stmt = select(models.User).filter(models.User.cpf == user_data.cpf)
+    stmt = (
+        select(models.User)
+        .options(
+            selectinload(models.User.unidadeSaude),
+            selectinload(models.User.roles)
+            )
+        .filter(models.User.cpf == user_data.cpf)
+    )
+    result = await db.execute(stmt)
+    user = result.scalars().first()
 
-#     if not user:
-#         raise HTTPException(status_code=404, detail="Usuário não encontrado")
+    if not user:
+        raise HTTPException(status_code=404, detail="Usuário não encontrado")
     
-#     # Opcional: verifique se o usuário pertence à mesma Unidade de Saúde do supervisor
-#     # Assumindo que cada usuário possui pelo menos uma Unidade de Saúde e que o supervisor possui uma única unidade vinculada.
-#     if not current_user.unidadeSaude:
-#         raise HTTPException(status_code=400, detail="Supervisor não possui Unidade de Saúde definida")
-#     if not user.unidadeSaude:
-#         raise HTTPException(status_code=400, detail="Usuário não possui Unidade de Saúde definida")
+    # Opcional: verifique se o usuário pertence à mesma Unidade de Saúde do supervisor
+    # Assumindo que cada usuário possui pelo menos uma Unidade de Saúde e que o supervisor possui uma única unidade vinculada.
+    if not current_user.unidadeSaude:
+        raise HTTPException(status_code=400, detail="Supervisor não possui Unidade de Saúde definida")
+    if not user.unidadeSaude:
+        raise HTTPException(status_code=400, detail="Usuário não possui Unidade de Saúde definida")
     
-#     supervisor_unidade = current_user.unidadeSaude[0].id
-#     # Caso o usuário esteja associado a múltiplas unidades, verifique se a unidade do supervisor consta entre elas
-#     if supervisor_unidade not in [unidade.id for unidade in user.unidadeSaude]:
-#         raise HTTPException(
-#             status_code=403, 
-#             detail="Você não tem permissão para editar esse usuário, pois ele não pertence à sua Unidade de Saúde"
-#         )
+    supervisor_unidade = current_user.unidadeSaude[0].id
+    # Caso o usuário esteja associado a múltiplas unidades, verifique se a unidade do supervisor consta entre elas
+    if supervisor_unidade not in [unidade.id for unidade in user.unidadeSaude]:
+        raise HTTPException(
+            status_code=403, 
+            detail="Você não tem permissão para editar esse usuário, pois ele não pertence à sua Unidade de Saúde"
+        )
     
-#     # Busca a role informada
-#     stmt = select(models.Role).filter(models.Role.id == user_data.role_id)
-#     result = await db.execute(stmt)
-#     role = result.scalars().first()
+    # Busca a role informada
+    stmt = select(models.Role).filter(models.Role.id == user_data.role_id)
+    result = await db.execute(stmt)
+    role = result.scalars().first()
 
-#     if not role:
-#         raise HTTPException(status_code=404, detail="Permissão não encontrada")
+    if not role:
+        raise HTTPException(status_code=404, detail="Permissão não encontrada")
     
-#     # Garante que a role escolhida seja de nível SUPERVISOR ou inferior
-#     if role.nivel_acesso > RoleEnum.SUPERVISOR:
-#         raise HTTPException(
-#             status_code=400, 
-#             detail="Você não pode atribuir uma permissão maior do que SUPERVISOR"
-#         )
+    # Garante que a role escolhida seja de nível SUPERVISOR ou inferior
+    if role.nivel_acesso > RoleEnum.SUPERVISOR:
+        raise HTTPException(
+            status_code=400, 
+            detail="Você não pode atribuir uma permissão maior do que SUPERVISOR"
+        )
     
-#     user.roles = [role]
-#     user.is_active = user_data.is_active
-#     user.id_usuario_atualizacao = current_user.id
+    user.roles = [role]
+    user.is_active = user_data.is_active
+    user.id_usuario_atualizacao = current_user.id
 
-#     await db.commit()
-#     await db.refresh(user)
+    await db.commit()
+    await db.refresh(user)
 
-#     return user
+    return user

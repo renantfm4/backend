@@ -85,3 +85,17 @@ class UserOut(BaseModel):
 
     class Config:
         orm_mode = True
+
+class UnidadeSaudeCreateSchema(BaseModel):
+    nome_unidade_saude: str
+    nome_localizacao: str
+    codigo_unidade_saude: str
+    cidade_unidade_saude: str
+    is_active: bool
+
+class UnidadeSaudeUpdateSchema(BaseModel):
+    nome_unidade_saude: Optional[str] = None
+    nome_localizacao: Optional[str] = None
+    codigo_unidade_saude: Optional[str] = None
+    cidade_unidade_saude: Optional[str] = None
+    is_active: Optional[bool] = None

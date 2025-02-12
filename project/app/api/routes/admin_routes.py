@@ -2,9 +2,10 @@ from fastapi import APIRouter, Depends, HTTPException, BackgroundTasks
 from typing import List
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
+from sqlalchemy.orm import selectinload
 from ...database.database import get_db
 # from ...crud.user import create_user, assign_role_to_user, assign_permission_to_user, assign_user_to_group
-from ...database.schemas import UserCreate, UserUpdate, UserInviteSchema, UserCreateAdminSchema, AdminUserEdit
+from ...database.schemas import UserCreate, UserUpdate, UserInviteSchema, UserCreateAdminSchema, AdminUserEdit, UserOut
 from ...core.security import get_password_hash
 from ...database import models
 from ...crud.token import get_user_by_cpf, get_user, get_current_user
@@ -69,13 +70,21 @@ async def cadastrar_usuario(user_data: UserCreateAdminSchema,
 
     return {"message": "Convite enviado com sucesso!"}
 
-@router.post("/admin/editar-usuario", response_model=UserInviteSchema)
+@router.post("/admin/editar-usuario", response_model=UserOut)
 async def editar_usuario(user_data: AdminUserEdit, 
                          db: AsyncSession = Depends(get_db),
                          current_user: models.User = Depends(require_role(RoleEnum.ADMIN))):
     
     # editar unidade de saude e role de um usuario
-    stmt = select(models.User).filter(models.User.cpf == user_data.cpf)
+    # stmt = select(models.User).filter(models.User.cpf == user_data.cpf)
+    stmt = (
+        select(models.User)
+        .options(
+            selectinload(models.User.unidadeSaude),
+            selectinload(models.User.roles)
+            )
+        .filter(models.User.cpf == user_data.cpf)
+    )
     result = await db.execute(stmt)
     user = result.scalars().first()
 

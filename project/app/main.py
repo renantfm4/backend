@@ -1,5 +1,5 @@
 from fastapi import FastAPI
-from app.api.routes import token_routes, user_routes, admin_routes, supervisor_routes #, audit_routes, group_routes, permission_routes, role_routes
+from app.api.routes import token_routes, user_routes, admin_routes, supervisor_routes, unidade_saude_routes
 from app.database import models, database
 from app.database.seed import seed_data, populate_data
 from contextlib import asynccontextmanager
@@ -46,7 +46,7 @@ app.include_router(token_routes.router, tags=["token"])
 app.include_router(user_routes.router, tags=["user"])
 app.include_router(admin_routes.router, tags=["admin"])
 app.include_router(supervisor_routes.router, tags=["supervisor"])
-# app.include_router(permission_routes.router)
-# app.include_router(role_routes.router)
-# app.include_router(group_routes.router)
-# app.include_router(audit_routes.router)
+app.include_router(unidade_saude_routes.router, tags=["unidade_saude"])
+
+
+
