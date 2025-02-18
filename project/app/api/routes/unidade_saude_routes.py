@@ -28,7 +28,8 @@ async def cadastrar_unidade_saude(
         nome_localizacao=unidade_data.nome_localizacao,
         codigo_unidade_saude=unidade_data.codigo_unidade_saude,
         cidade_unidade_saude=unidade_data.cidade_unidade_saude,
-        is_active=unidade_data.is_active
+        is_active=unidade_data.is_active,
+        id_usuario_criacao = current_user.id
     )
     
     db.add(new_unidade)
@@ -70,9 +71,11 @@ async def editar_unidade_saude(
     if not unidade:
         raise HTTPException(status_code=404, detail="Unidade de Saúde não encontrada")
     
-    update_data = unidade_data.dict(exclude_unset=True)
+    update_data = unidade_data.model_dump(exclude_unset=True)
     for field, value in update_data.items():
         setattr(unidade, field, value)
+    
+    unidade.id_usuario_atualizacao = current_user.id
     
     await db.commit()
     await db.refresh(unidade)

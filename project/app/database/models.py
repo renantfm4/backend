@@ -32,7 +32,7 @@ class User(AuditMixin, Base):
     roles = relationship('Role', secondary=user_roles, back_populates='users')
     unidadeSaude = relationship('UnidadeSaude', secondary=user_unidadeSaude, back_populates='users')
 
-class UnidadeSaude(Base):
+class UnidadeSaude(AuditMixin, Base):
     __tablename__ = 'unidadeSaude'
     id = Column(Integer, primary_key=True, index=True)
     nome_unidade_saude = Column(String(100), unique=True, index=True, nullable=False)
@@ -49,7 +49,7 @@ class Role(Base):
     nivel_acesso = Column(Integer, nullable=False, default=1)
     users = relationship('User', secondary=user_roles, back_populates='roles')
 
-class Atendimento(Base):
+class Atendimento(AuditMixin, Base):
     __tablename__ = 'atendimentos'
     id = Column(Integer, primary_key=True, index=True)
     data_atendimento = Column(TIMESTAMP, server_default=func.now())
@@ -57,7 +57,7 @@ class Atendimento(Base):
     paciente_id = Column(Integer, ForeignKey('pacientes.id'))
     paciente = relationship('Paciente')
     user_id = Column(Integer, ForeignKey('users.id'))
-    user = relationship('User')
+    user = relationship('User', foreign_keys=[user_id])
     termo_consentimento_id = Column(Integer, ForeignKey('termoConsentimento.id'))
     termo_consentimento = relationship('TermoConsentimento')
     saude_geral_id = Column(Integer, ForeignKey('saudeGeral.id'))
@@ -107,21 +107,21 @@ class TermoConsentimento(Base):
 class SaudeGeral(Base):
     __tablename__ = 'saudeGeral'
     id = Column(Integer, primary_key=True, index=True)
-    doencas_cronicas = Column(Boolean, nullable=False)
-    hipertenso = Column(Boolean, nullable=False)
-    diabetes = Column(Boolean, nullable=False)
-    cardiopatia = Column(Boolean, nullable=False)
+    doencas_cronicas = Column(Boolean, nullable=False, default=False)
+    hipertenso = Column(Boolean, nullable=False, default=False)
+    diabetes = Column(Boolean, nullable=False, default=False)
+    cardiopatia = Column(Boolean, nullable=False, default=False)
     outras_doencas = Column(String(300))
-    diagnostico_cancer = Column(Boolean, nullable=False)
+    diagnostico_cancer = Column(Boolean, nullable=False, default=False)
     tipo_cancer = Column(String(100))
-    uso_medicamentos = Column(Boolean, nullable=False)
+    uso_medicamentos = Column(Boolean, nullable=False, default=False)
     medicamentos = Column(String(500))
-    possui_alergia = Column(Boolean, nullable=False)
+    possui_alergia = Column(Boolean, nullable=False, default=False)
     alergias = Column(String(500))
-    ciruturgias_dermatologicas = Column(Boolean, nullable=False)
+    ciruturgias_dermatologicas = Column(Boolean, nullable=False, default=False)
     tipo_procedimento = Column(String(200))
-    pratica_atividade_fisica = Column(Boolean, nullable=False)
-    frequencia_atividade_fisica = Column(Enum('Diária', 'Frequente', 'Moderada', 'Ocasional', name='frequencia_atividade_fisica_enum'))
+    pratica_atividade_fisica = Column(Boolean, nullable=False, default=False)
+    frequencia_atividade_fisica = Column(Enum('Diária', 'Frequente', 'Moderada', 'Ocasional', name='frequencia_atividade_fisica_enum'), default=None)
 
 class AvaliacaoFototipo(Base):
     __tablename__ = 'avaliacao_fototipo'

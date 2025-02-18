@@ -1,5 +1,8 @@
 from pydantic import BaseModel, EmailStr
 from typing import List, Optional
+from datetime import date
+
+from enum import Enum
 
 class UserBase(BaseModel):
     nome_usuario: str
@@ -99,3 +102,57 @@ class UnidadeSaudeUpdateSchema(BaseModel):
     codigo_unidade_saude: Optional[str] = None
     cidade_unidade_saude: Optional[str] = None
     is_active: Optional[bool] = None
+
+class sexoEnum(str, Enum):
+    masculino = "M"
+    feminino = "F"
+    nao_binario = "NB"
+    nao_respondeu = "NR"
+    outro = "O"
+
+class PacienteCreateSchema(BaseModel):
+    nome_paciente: str
+    data_nascimento: date
+    sexo: sexoEnum = None
+    sexo_outro: Optional[str] = None
+    cpf_paciente: str
+    num_cartao_sus: str
+    endereco_paciente: str
+    telefone_paciente: str
+    email_paciente: str
+    autoriza_pesquisa: bool
+
+class TermoConsentimentoCreateSchema(BaseModel):
+    arquivo_url: str
+
+class FrequenciaAtividadeFisicaEnum(str, Enum):
+    diaria = "Diária"
+    frequente = "Frequente"
+    moderada = "Moderada"
+    ocasional = "Ocasional"
+
+class SaudeGeralCreateSchema(BaseModel):
+    doencas_cronicas: bool
+    hipertenso: bool
+    diabetes: bool
+    cardiopatia: bool
+    outras_doencas: Optional[str] = None
+    diagnostico_cancer: bool
+    tipo_cancer: Optional[str] = None
+    uso_medicamentos: bool
+    medicamentos: Optional[str] = None
+    possui_alergia: bool
+    alergias: Optional[str] = None
+    ciruturgias_dermatologicas: bool
+    tipo_procedimento: Optional[str] = None
+    pratica_atividade_fisica: bool
+    frequencia_atividade_fisica: Optional[FrequenciaAtividadeFisicaEnum] = None
+
+class AvaliacaoFototipoCreateSchema(BaseModel):
+    cor_pele: int
+    cor_olhos: int
+    cor_cabelo: int
+    quantidade_sardas: int
+    reacao_sol: int
+    bronzeamento: int
+    sensibilidade_solar: int

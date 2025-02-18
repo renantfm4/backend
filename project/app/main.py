@@ -1,5 +1,5 @@
 from fastapi import FastAPI
-from app.api.routes import token_routes, user_routes, admin_routes, supervisor_routes, unidade_saude_routes
+from app.api.routes import token_routes, user_routes, admin_routes, supervisor_routes, unidade_saude_routes, atendimento_routes
 from app.database import models, database
 from app.database.seed import seed_data, populate_data
 from contextlib import asynccontextmanager
@@ -47,6 +47,7 @@ app.include_router(user_routes.router, tags=["user"])
 app.include_router(admin_routes.router, tags=["admin"])
 app.include_router(supervisor_routes.router, tags=["supervisor"])
 app.include_router(unidade_saude_routes.router, tags=["unidade_saude"])
+app.include_router(atendimento_routes.router, tags=["atendimento"])
 
 
 
