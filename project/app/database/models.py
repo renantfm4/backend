@@ -83,7 +83,7 @@ class RegistroLesoesImagens(Base):
     registro_lesoes = relationship('RegistroLesoes')
 
 
-class Paciente(Base):
+class Paciente(AuditMixin, Base):
     __tablename__ = 'pacientes'
     id = Column(Integer, primary_key=True, index=True)
     nome_paciente = Column(String(100), nullable=False)
@@ -143,14 +143,3 @@ class AvaliacaoFototipo(Base):
         CheckConstraint(bronzeamento.in_([0, 2, 4, 6]), name="check_bronzeamento"),
         CheckConstraint(sensibilidade_solar.in_([0, 1, 2, 3, 4]), name="check_sensibilidade_solar"),
     )
-
-
-
-class AuditLog(Base):
-    __tablename__ = 'audit_logs'
-    id = Column(Integer, primary_key=True, index=True)
-    user_id = Column(Integer, ForeignKey('users.id'))
-    change_type = Column(String(50))
-    change_details = Column(JSON)
-    changed_at = Column(TIMESTAMP, server_default=func.now())
-    user = relationship('User')

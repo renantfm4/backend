@@ -132,20 +132,20 @@ class FrequenciaAtividadeFisicaEnum(str, Enum):
     ocasional = "Ocasional"
 
 class SaudeGeralCreateSchema(BaseModel):
-    doencas_cronicas: bool
-    hipertenso: bool
-    diabetes: bool
-    cardiopatia: bool
+    doencas_cronicas: bool = False
+    hipertenso: bool = False
+    diabetes: bool = False
+    cardiopatia: bool = False
     outras_doencas: Optional[str] = None
-    diagnostico_cancer: bool
+    diagnostico_cancer: bool = False
     tipo_cancer: Optional[str] = None
-    uso_medicamentos: bool
+    uso_medicamentos: bool = False
     medicamentos: Optional[str] = None
-    possui_alergia: bool
+    possui_alergia: bool = False
     alergias: Optional[str] = None
-    ciruturgias_dermatologicas: bool
+    ciruturgias_dermatologicas: bool = False
     tipo_procedimento: Optional[str] = None
-    pratica_atividade_fisica: bool
+    pratica_atividade_fisica: bool = False
     frequencia_atividade_fisica: Optional[FrequenciaAtividadeFisicaEnum] = None
 
 class AvaliacaoFototipoCreateSchema(BaseModel):
@@ -156,3 +156,10 @@ class AvaliacaoFototipoCreateSchema(BaseModel):
     reacao_sol: int
     bronzeamento: int
     sensibilidade_solar: int
+
+class RegistroLesoesCreateSchema(BaseModel):
+    local_lesao: str
+    descricao_lesao: str
+
+    class Config:
+        orm_mode = True
