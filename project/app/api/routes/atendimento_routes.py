@@ -1,11 +1,11 @@
-from fastapi import APIRouter, Depends, HTTPException, UploadFile, File
+from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form
 from typing import List
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 from ...database.database import get_db
 from ...core.hierarchy import require_role, RoleEnum
 from ...database import models
-from ...database.schemas import PacienteCreateSchema, TermoConsentimentoCreateSchema, SaudeGeralCreateSchema, AvaliacaoFototipoCreateSchema, RegistroLesoesCreateSchema
+from ...database.schemas import PacienteCreateSchema, TermoConsentimentoCreateSchema, SaudeGeralCreateSchema, AvaliacaoFototipoCreateSchema, RegistroLesoesCreateSchema, RegistroLesoesCreateSchema, LocalLesaoSchema
 
 
 router = APIRouter()
@@ -244,75 +244,135 @@ async def listar_atendimentos_usuario_logado(
 
     return atendimentos_list
 
-
 @router.post("/cadastrar-lesao")
 async def cadastrar_lesao(
-    lesao_data: RegistroLesoesCreateSchema,
-    atendimento_id: int,
+    atendimento_id: int = Form(...),
+    local_lesao_id: int = Form(...),
+    descricao_lesao: str = Form(...),
+    files: List[UploadFile] = File(None),
     db: AsyncSession = Depends(get_db),
     current_user: models.User = Depends(require_role(RoleEnum.PESQUISADOR))
 ):
-    # Verifica se o atendimento existe
+    # Verify atendimento exists
     stmt = select(models.Atendimento).filter(models.Atendimento.id == atendimento_id)
     result = await db.execute(stmt)
     atendimento = result.scalars().first()
 
     if not atendimento:
         raise HTTPException(status_code=404, detail="Atendimento não encontrado")
+    
+    # Verify local_lesao_id exists
+    stmt_local = select(models.LocalLesao).filter(models.LocalLesao.id == local_lesao_id)
+    result_local = await db.execute(stmt_local)
+    local_lesao = result_local.scalar_one_or_none()
+    
+    if not local_lesao:
+        raise HTTPException(status_code=404, detail="Local de lesão não encontrado")
 
-    # Criando nova lesão
+    # Create new lesion with foreign key to LocalLesao
     new_lesao = models.RegistroLesoes(
-        local_lesao=lesao_data.local_lesao,
-        descricao_lesao=lesao_data.descricao_lesao,
+        local_lesao_id=local_lesao_id,
+        descricao_lesao=descricao_lesao,
         atendimento_id=atendimento.id
     )
-
     db.add(new_lesao)
     await db.commit()
     await db.refresh(new_lesao)
 
-    return {
-        "message": "Lesão cadastrada com sucesso!",
-        "lesao": new_lesao
-    }
-
-
-@router.post("/upload-imagem-lesao/{lesao_id}")
-async def upload_imagem_lesao(
-    lesao_id: int,
-    files: List[UploadFile] = File(...),
-    db: AsyncSession = Depends(get_db),
-    current_user: models.User = Depends(require_role(RoleEnum.PESQUISADOR))
-):
-    # Verifica se a lesão existe
-    stmt = select(models.RegistroLesoes).filter(models.RegistroLesoes.id == lesao_id)
-    result = await db.execute(stmt)
-    lesao = result.scalars().first()
-
-    if not lesao:
-        raise HTTPException(status_code=404, detail="Lesão não encontrada")
-
     imagens_urls = []
+    if files:
+        for file in files:
+            fake_url = f"https://fake-storage.com/uploads/{file.filename}"
+            imagens_urls.append(fake_url)
 
-    for file in files:
-        # Simula o armazenamento do arquivo e gera um URL (substituir por S3 ou armazenamento real)
-        fake_url = f"https://fake-storage.com/uploads/{file.filename}"
-        imagens_urls.append(fake_url)
-
-        # Cria o registro da imagem no banco
-        new_imagem = models.RegistroLesoesImagens(
-            arquivo_url=fake_url,
-            registro_lesoes_id=lesao.id
-        )
-
-        db.add(new_imagem)
-
-    await db.commit()
+            # Cria o registro da imagem no banco
+            new_imagem = models.RegistroLesoesImagens(
+                arquivo_url=fake_url,
+                registro_lesoes_id=new_lesao.id
+            )
+            db.add(new_imagem)
+        await db.commit()
 
     return {
-        "message": "Imagens cadastradas com sucesso!",
+        "message": "Lesão e imagens cadastradas com sucesso!",
+        "lesao": {
+            "id": new_lesao.id,
+            "local_lesao_id": new_lesao.local_lesao_id,
+            "local_lesao_nome": local_lesao.nome,
+            "descricao_lesao": new_lesao.descricao_lesao,
+        },
         "imagens": imagens_urls
     }
+
+
+# @router.post("/cadastrar-lesao")
+# async def cadastrar_lesao(
+#     lesao_data: RegistroLesoesCreateSchema,
+#     atendimento_id: int,
+#     db: AsyncSession = Depends(get_db),
+#     current_user: models.User = Depends(require_role(RoleEnum.PESQUISADOR))
+# ):
+#     # Verifica se o atendimento existe
+#     stmt = select(models.Atendimento).filter(models.Atendimento.id == atendimento_id)
+#     result = await db.execute(stmt)
+#     atendimento = result.scalars().first()
+
+#     if not atendimento:
+#         raise HTTPException(status_code=404, detail="Atendimento não encontrado")
+
+#     # Criando nova lesão
+#     new_lesao = models.RegistroLesoes(
+#         local_lesao=lesao_data.local_lesao,
+#         descricao_lesao=lesao_data.descricao_lesao,
+#         atendimento_id=atendimento.id
+#     )
+
+#     db.add(new_lesao)
+#     await db.commit()
+#     await db.refresh(new_lesao)
+
+#     return {
+#         "message": "Lesão cadastrada com sucesso!",
+#         "lesao": new_lesao
+#     }
+
+
+# @router.post("/upload-imagem-lesao/{lesao_id}")
+# async def upload_imagem_lesao(
+#     lesao_id: int,
+#     files: List[UploadFile] = File(...),
+#     db: AsyncSession = Depends(get_db),
+#     current_user: models.User = Depends(require_role(RoleEnum.PESQUISADOR))
+# ):
+#     # Verifica se a lesão existe
+#     stmt = select(models.RegistroLesoes).filter(models.RegistroLesoes.id == lesao_id)
+#     result = await db.execute(stmt)
+#     lesao = result.scalars().first()
+
+#     if not lesao:
+#         raise HTTPException(status_code=404, detail="Lesão não encontrada")
+
+#     imagens_urls = []
+
+#     for file in files:
+#         # Simula o armazenamento do arquivo e gera um URL (substituir por S3 ou armazenamento real)
+#         fake_url = f"https://fake-storage.com/uploads/{file.filename}"
+#         imagens_urls.append(fake_url)
+
+#         # Cria o registro da imagem no banco
+#         new_imagem = models.RegistroLesoesImagens(
+#             arquivo_url=fake_url,
+#             registro_lesoes_id=lesao.id
+#         )
+
+#         db.add(new_imagem)
+
+#     await db.commit()
+
+#     return {
+#         "message": "Imagens cadastradas com sucesso!",
+#         "imagens": imagens_urls
+#     }
 
 
 @router.get("/listar-lesoes/{atendimento_id}")
@@ -341,12 +401,29 @@ async def listar_lesoes(
         )
         result_imagens = await db.execute(stmt_imagens)
         imagens = result_imagens.scalars().all()
+        
+        # Get local lesao name if available
+        local_lesao_name = None
+        if lesao.local_lesao_id:
+            stmt_local = select(models.LocalLesao).filter(models.LocalLesao.id == lesao.local_lesao_id)
+            result_local = await db.execute(stmt_local)
+            local_obj = result_local.scalar_one_or_none()
+            if local_obj:
+                local_lesao_name = local_obj.nome
 
         lesoes_list.append({
             "id": lesao.id,
-            "local_lesao": lesao.local_lesao,
+            "local_lesao_id": lesao.local_lesao_id,
+            "local_lesao_nome": local_lesao_name,
             "descricao_lesao": lesao.descricao_lesao,
             "imagens": [imagem.arquivo_url for imagem in imagens]
         })
 
     return lesoes_list
+
+@router.get("/locais-lesao", response_model=List[LocalLesaoSchema])
+async def get_locais_lesao(db: AsyncSession = Depends(get_db)):
+    stmt = select(models.LocalLesao)
+    result = await db.execute(stmt)
+    locais = result.scalars().all()
+    return locais

@@ -1,11 +1,12 @@
 import random
 from datetime import date, timedelta
 from sqlalchemy.orm import Session
+from sqlalchemy.future import select
 from app.database.database import SessionLocal 
 from ..core.security import get_password_hash
 
 # Importe os modelos definidos (User, Role, UnidadeSaude, Paciente, Atendimento, TermoConsentimento,
-# SaudeGeral, AvaliacaoFototipo, RegistroLesoes, RegistroLesoesImagens)
+# SaudeGeral, AvaliacaoFototipo, RegistroLesoes, RegistroLesoesImagens, LocalLesao)
 from .models import (
     User,
     Role,
@@ -17,8 +18,8 @@ from .models import (
     AvaliacaoFototipo,
     RegistroLesoes,
     RegistroLesoesImagens,
+    LocalLesao,
 )
-
 
 # Lista de possíveis locais para as lesões
 LESOES_LOCAIS = ["Face", "Braço", "Perna", "Tronco", "Mão", "Pé"]
@@ -151,20 +152,34 @@ async def populate_db():
 
         usuarios = [usuario1, usuario2, usuario3, usuario4, usuario5]
 
-        # 4. Criação de 10 pacientes e seus atendimentos com registro de lesões e imagens
-        nomes_pacientes = [
-            "Ana Silva", "Bruno Souza", "Carla Pereira", "Daniel Oliveira", "Elisa Costa",
-            "Fernando Almeida", "Gabriela Martins", "Henrique Rodrigues", "Isabela Gomes", "João Lima"
-        ]
-        # Lista de locais para lesões (será utilizada sequencialmente)
-        locais_lesao = [
-            "Braço esquerdo", "Face", "Perna direita", "Costas", "Mão direita",
-            "Abdômen", "Pescoço", "Ombro", "Joelho", "Tornozelo"
-        ]
+        # 3. Criação dos locais de lesão
+        local1 = LocalLesao(nome="Face")
+        local2 = LocalLesao(nome="Tronco")
+        local3 = LocalLesao(nome="Membros Superiores")
+        local4 = LocalLesao(nome="Membros Inferiores")
+        session.add_all([local1, local2, local3, local4])
+        await session.commit()  # Insere os locais na tabela
+
+        # Recupera os locais para uso na criação dos registros de lesão
+        result = await session.execute(select(LocalLesao))
+        locais_lesao = result.scalars().all()
         local_lesao_index = 0
 
+        # Supondo que a lista de nomes dos pacientes já esteja definida
+        nomes_pacientes = [
+            "João da Silva", "Maria Souza", "Pedro Oliveira", "Ana Costa", 
+            "Carlos Mendes", "Beatriz Rocha", "Rafael Lima", "Fernanda Dias", 
+            "Lucas Pires", "Juliana Almeida"
+        ]
+        # Supondo que os usuários já foram criados e estão disponíveis
+        result = await session.execute(select(User))
+        usuarios = result.scalars().all()
+
+        from datetime import date
+        import random
+
         for i in range(10):
-            # Criar paciente
+            # Cria um paciente
             paciente = Paciente(
                 nome_paciente=nomes_pacientes[i],
                 data_nascimento=date(1980 + i, (i % 12) + 1, (i % 28) + 1),
@@ -182,6 +197,7 @@ async def populate_db():
 
             # Seleciona um usuário para o atendimento (de forma cíclica)
             usuario_atendimento = usuarios[i % len(usuarios)]
+
             # Cria um TermoConsentimento
             termo = TermoConsentimento(
                 arquivo_url=f"http://exemplo.com/consentimento_{i+1}.pdf"
@@ -212,13 +228,13 @@ async def populate_db():
 
             # Cria um objeto AvaliacaoFototipo com valores válidos conforme as restrições
             avaliacao_fototipo = AvaliacaoFototipo(
-                cor_pele=4,              # (por exemplo, 4 está na lista [0,2,4,8,12,16,20])
-                cor_olhos=2,             # (na lista [0,1,2,3,4])
-                cor_cabelo=1,            # (na lista [0,1,2,3,4])
-                quantidade_sardas=1,     # (na lista [0,1,2,3])
-                reacao_sol=4,            # (na lista [0,2,4,6,8])
-                bronzeamento=2,          # (na lista [0,2,4,6])
-                sensibilidade_solar=1    # (na lista [0,1,2,3,4])
+                cor_pele=4,              # valor válido conforme a restrição [0,2,4,8,12,16,20]
+                cor_olhos=2,             # valor válido na lista [0,1,2,3,4]
+                cor_cabelo=1,            # valor válido na lista [0,1,2,3,4]
+                quantidade_sardas=1,     # valor válido na lista [0,1,2,3]
+                reacao_sol=4,            # valor válido na lista [0,2,4,6,8]
+                bronzeamento=2,          # valor válido na lista [0,2,4,6]
+                sensibilidade_solar=1    # valor válido na lista [0,1,2,3,4]
             )
             session.add(avaliacao_fototipo)
             await session.commit()
@@ -230,7 +246,6 @@ async def populate_db():
                 termo_consentimento_id=termo.id,
                 saude_geral_id=saude_geral.id,
                 avaliacao_fototipo_id=avaliacao_fototipo.id
-                # data_atendimento é gerado automaticamente
             )
             session.add(atendimento)
             await session.commit()
@@ -238,12 +253,12 @@ async def populate_db():
             # Para cada paciente, cria entre 0 e 3 registros de lesões (cada um com uma imagem associada)
             num_lesoes = i % 4  # varia de 0 a 3 de forma previsível
             for j in range(num_lesoes):
-                # Seleciona um local para a lesão (garante variedade)
+                # Seleciona um local para a lesão garantindo variedade
                 local = locais_lesao[local_lesao_index % len(locais_lesao)]
                 local_lesao_index += 1
                 registro_lesao = RegistroLesoes(
-                    local_lesao=local,
-                    descricao_lesao=f"Lesão observada no {local.lower()} com sinais de cicatrização.",
+                    local_lesao_id=local.id,  # Utiliza o id do local predefinido
+                    descricao_lesao=f"Lesão observada na região {local.nome} com sinais de cicatrização.",
                     atendimento_id=atendimento.id
                 )
                 session.add(registro_lesao)
@@ -256,3 +271,4 @@ async def populate_db():
                 )
                 session.add(imagem)
                 await session.commit()
+                

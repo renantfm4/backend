@@ -69,10 +69,13 @@ class Atendimento(AuditMixin, Base):
 class RegistroLesoes(Base):
     __tablename__ = 'registroLesoes'
     id = Column(Integer, primary_key=True, index=True)
-    local_lesao = Column(String(100), nullable=False)
+    # local_lesao = Column(String(100), nullable=False)
+    local_lesao_id = Column(Integer, ForeignKey('locais_lesao.id'), nullable=False)
     descricao_lesao = Column(String(500), nullable=False)
     atendimento_id = Column(Integer, ForeignKey('atendimentos.id'))
+
     atendimento = relationship('Atendimento')
+    local_lesao = relationship('LocalLesao')
 
 
 class RegistroLesoesImagens(Base):
@@ -82,6 +85,10 @@ class RegistroLesoesImagens(Base):
     registro_lesoes_id = Column(Integer, ForeignKey('registroLesoes.id'))
     registro_lesoes = relationship('RegistroLesoes')
 
+class LocalLesao(Base):
+    __tablename__ = 'locais_lesao'
+    id = Column(Integer, primary_key=True, index=True)
+    nome = Column(String(100), unique=True, nullable=False)
 
 class Paciente(AuditMixin, Base):
     __tablename__ = 'pacientes'

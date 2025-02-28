@@ -1,4 +1,5 @@
 from pydantic import BaseModel, EmailStr
+from fastapi import Form
 from typing import List, Optional
 from datetime import date
 
@@ -157,9 +158,29 @@ class AvaliacaoFototipoCreateSchema(BaseModel):
     bronzeamento: int
     sensibilidade_solar: int
 
+# class RegistroLesoesCreateSchema(BaseModel):
+#     local_lesao: str
+#     descricao_lesao: str
+
+#     class Config:
+#         orm_mode = True
+
 class RegistroLesoesCreateSchema(BaseModel):
     local_lesao: str
     descricao_lesao: str
+
+    @classmethod
+    def as_form(
+        cls,
+        local_lesao: str = Form(...),
+        descricao_lesao: str = Form(...)
+    ):
+        return cls(local_lesao=local_lesao, descricao_lesao=descricao_lesao)
+    
+
+class LocalLesaoSchema(BaseModel):
+    id: int
+    nome: str
 
     class Config:
         orm_mode = True
