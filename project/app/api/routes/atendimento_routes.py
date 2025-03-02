@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form
+from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form, Query
 from typing import List
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
@@ -52,7 +52,42 @@ async def cadastrar_atendimento(
     await db.commit()
     await db.refresh(new_atendimento)
 
-    return new_atendimento
+    # return new_atendimento
+    return {
+        "id": new_atendimento.id,
+        "paciente_id": new_paciente.id,
+        "nome_paciente": new_paciente.nome_paciente,
+        "cpf_paciente": new_paciente.cpf_paciente
+    }
+
+
+@router.get("/cadastrar-atendimento")
+async def get_paciente_by_cpf(
+    cpf_paciente: str = Query(..., description="CPF do paciente"),
+    db: AsyncSession = Depends(get_db),
+    current_user: models.User = Depends(require_role(RoleEnum.PESQUISADOR))
+):
+    stmt = select(models.Paciente).filter(models.Paciente.cpf_paciente == cpf_paciente)
+    result = await db.execute(stmt)
+    paciente = result.scalars().first()
+
+    if not paciente:
+        raise HTTPException(status_code=404, detail="Paciente não encontrado")
+
+    return {
+        "id": paciente.id,
+        "nome_paciente": paciente.nome_paciente,
+        "cpf_paciente": paciente.cpf_paciente,
+        "data_nascimento": paciente.data_nascimento,
+        "sexo": paciente.sexo,
+        "sexo_outro": paciente.sexo_outro,
+        "num_cartao_sus": paciente.num_cartao_sus,
+        "endereco_paciente": paciente.endereco_paciente,
+        "telefone_paciente": paciente.telefone_paciente,
+        "email_paciente": paciente.email_paciente,
+        "autoriza_pesquisa": paciente.autoriza_pesquisa
+    }
+
 
 
 @router.post("/cadastrar-termo-consentimento") 
