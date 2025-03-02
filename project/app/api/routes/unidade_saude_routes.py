@@ -1,10 +1,12 @@
 from fastapi import APIRouter, Depends, HTTPException
+from typing import List
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
+from sqlalchemy.orm import selectinload
 from ...database.database import get_db
 from ...core.hierarchy import require_role, RoleEnum
 from ...database import models
-from ...database.schemas import UnidadeSaudeCreateSchema, UnidadeSaudeUpdateSchema
+from ...database.schemas import UnidadeSaudeCreateSchema, UnidadeSaudeUpdateSchema, UserResponseSchema
 
 
 router = APIRouter()
@@ -81,3 +83,18 @@ async def editar_unidade_saude(
     await db.refresh(unidade)
     
     return unidade
+
+@router.get("/listar-usuarios-unidade-saude/{unidade_id}", response_model=List[UserResponseSchema])
+async def listar_usuarios_unidade_saude(
+    unidade_id: int, 
+    db: AsyncSession = Depends(get_db),
+    current_user: models.User = Depends(require_role(RoleEnum.SUPERVISOR))
+    ):
+    stmt = select(models.UnidadeSaude).filter(models.UnidadeSaude.id == unidade_id).options(selectinload(models.UnidadeSaude.users))
+    result = await db.execute(stmt)
+    unidade = result.scalars().first()
+    
+    if not unidade:
+        raise HTTPException(status_code=404, detail="Unidade de Saúde não encontrada")
+    
+    return unidade.users

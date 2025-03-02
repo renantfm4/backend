@@ -184,3 +184,15 @@ class LocalLesaoSchema(BaseModel):
 
     class Config:
         orm_mode = True
+
+
+
+class UserResponseSchema(BaseModel):
+    id: int
+    nome_usuario: str
+    email: str
+    cpf: str
+    is_active: bool
+
+    class Config:
+        orm_mode = True
