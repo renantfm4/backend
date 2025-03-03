@@ -186,7 +186,6 @@ class LocalLesaoSchema(BaseModel):
         orm_mode = True
 
 
-
 class UserResponseSchema(BaseModel):
     id: int
     nome_usuario: str

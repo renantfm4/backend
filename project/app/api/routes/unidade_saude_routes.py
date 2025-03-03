@@ -90,7 +90,7 @@ async def listar_usuarios_unidade_saude(
     db: AsyncSession = Depends(get_db),
     current_user: models.User = Depends(require_role(RoleEnum.SUPERVISOR))
     ):
-    stmt = select(models.UnidadeSaude).filter(models.UnidadeSaude.id == unidade_id).options(selectinload(models.UnidadeSaude.users))
+    stmt = select(models.UnidadeSaude).filter(models.UnidadeSaude.id == unidade_id).options(selectinload(models.UnidadeSaude.users.and_(models.User.is_active == True)))
     result = await db.execute(stmt)
     unidade = result.scalars().first()
     
