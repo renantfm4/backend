@@ -32,12 +32,12 @@ async def completar_cadastro(user_data: CompleteUserSchema, db: AsyncSession = D
     if not user:
         raise HTTPException(status_code=404, detail="Usuário não encontrado")
 
-    if user.is_active:
+    if user.fl_ativo:
         raise HTTPException(status_code=400, detail="Usuário já completou o cadastro")
 
     user.nome_usuario = user_data.nome_usuario
     user.senha_hash = get_password_hash(user_data.senha)
-    user.is_active = True
+    user.fl_ativo = True
 
     await db.commit()
     await db.refresh(user)
@@ -60,7 +60,7 @@ async def dados_completar_cadastro(token: str, db: AsyncSession = Depends(get_db
     if not user:
         raise HTTPException(status_code=404, detail="Usuário não encontrado")
     
-    if user.is_active:
+    if user.fl_ativo:
         raise HTTPException(status_code=400, detail="Usuário já completou o cadastro")
 
     nome_unidade_saude = None

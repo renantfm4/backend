@@ -60,7 +60,7 @@ async def cadastrar_usuario_supervisor(
     new_user = models.User(
         email=user_data.email,
         cpf=user_data.cpf,
-        is_active=False, 
+        fl_ativo=False, 
         id_usuario_criacao=current_user.id
     )
     
@@ -82,7 +82,7 @@ async def cadastrar_usuario_supervisor(
 
 @router.post("/supervisor/editar-usuario", response_model=UserOut)
 async def editar_usuario_supervisor(
-    user_data: SupervisorUserEdit,  # Schema contendo: cpf, role_id e is_active
+    user_data: SupervisorUserEdit,  # Schema contendo: cpf, role_id e fl_ativo
     db: AsyncSession = Depends(get_db),
     current_user: models.User = Depends(require_role(RoleEnum.SUPERVISOR))
 ):
@@ -133,7 +133,7 @@ async def editar_usuario_supervisor(
         )
     
     user.roles = [role]
-    user.is_active = user_data.is_active
+    user.fl_ativo = user_data.fl_ativo
     user.id_usuario_atualizacao = current_user.id
 
     await db.commit()

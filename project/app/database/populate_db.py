@@ -74,21 +74,21 @@ async def populate_db():
             nome_localizacao="Rua das Flores, 123 - Centro, São Paulo",
             codigo_unidade_saude="USC001",
             cidade_unidade_saude="São Paulo",
-            is_active=True
+            fl_ativo=True
         )
         unidade2 = UnidadeSaude(
             nome_unidade_saude="Posto de Saúde do Norte",
             nome_localizacao="Avenida Brasil, 456 - Bairro Alto, Rio de Janeiro",
             codigo_unidade_saude="PSN002",
             cidade_unidade_saude="Rio de Janeiro",
-            is_active=True
+            fl_ativo=True
         )
         unidade3 = UnidadeSaude(
             nome_unidade_saude="Clínica Vida",
             nome_localizacao="Travessa das Acácias, 789 - Zona Sul, Belo Horizonte",
             codigo_unidade_saude="CV003",
             cidade_unidade_saude="Belo Horizonte",
-            is_active=True
+            fl_ativo=True
         )
         session.add_all([unidade1, unidade2, unidade3])
         await session.commit()  # Para garantir que as unidades tenham um id
@@ -107,7 +107,7 @@ async def populate_db():
             email="admin@exemplo.com",
             cpf="11111111111",
             senha_hash=get_password_hash("admin123"),
-            is_active=True,
+            fl_ativo=True,
             roles=[role_admin],
             unidadeSaude=[unidade1]
         )
@@ -116,7 +116,7 @@ async def populate_db():
             email="sup.rj@exemplo.com",
             cpf="22222222222",
             senha_hash=get_password_hash("supervisor123"),
-            is_active=True,
+            fl_ativo=True,
             roles=[role_supervisor],
             unidadeSaude=[unidade2]
         )
@@ -125,7 +125,7 @@ async def populate_db():
             email="pesq.sp@exemplo.com",
             cpf="33333333333",
             senha_hash=get_password_hash("pesquisador123"),
-            is_active=True,
+            fl_ativo=True,
             roles=[role_pesquisador],
             unidadeSaude=[unidade1]
         )
@@ -134,7 +134,7 @@ async def populate_db():
             email="pesq.bh@exemplo.com",
             cpf="44444444444",
             senha_hash=get_password_hash("pesquisador123"),
-            is_active=True,
+            fl_ativo=True,
             roles=[role_pesquisador],
             unidadeSaude=[unidade3]
         )
@@ -143,7 +143,7 @@ async def populate_db():
             email="sup.bh@exemplo.com",
             cpf="55555555555",
             senha_hash=get_password_hash("supervisor123"),
-            is_active=True,
+            fl_ativo=True,
             roles=[role_supervisor],
             unidadeSaude=[unidade3]
         )

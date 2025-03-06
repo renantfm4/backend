@@ -21,11 +21,11 @@ user_unidadeSaude = Table(
 class User(AuditMixin, Base):
     __tablename__ = 'users'
     id = Column(Integer, primary_key=True, index=True)
-    nome_usuario = Column(String(50), unique=True, index=True, nullable=True)
+    nome_usuario = Column(String(50), index=True, nullable=True)
     email = Column(String(100), unique=True, index=True, nullable=False)
     cpf = Column(String(11), unique=True, index=True, nullable=False)
     senha_hash = Column(String(255), nullable=True)
-    is_active = Column(Boolean, default=False)
+    # is_active = Column(Boolean, default=False)
     password_reset_token = Column(String(255), nullable=True)
     password_reset_token_used = Column(Boolean, default=False)
 
@@ -35,11 +35,11 @@ class User(AuditMixin, Base):
 class UnidadeSaude(AuditMixin, Base):
     __tablename__ = 'unidadeSaude'
     id = Column(Integer, primary_key=True, index=True)
-    nome_unidade_saude = Column(String(100), unique=True, index=True, nullable=False)
+    nome_unidade_saude = Column(String(100), index=True, nullable=False)
     nome_localizacao = Column(String(300), nullable=False)
     codigo_unidade_saude = Column(String(50), unique=True, index=True, nullable=False)
     cidade_unidade_saude = Column(String(100), nullable=False)
-    is_active = Column(Boolean, default=True)
+    # is_active = Column(Boolean, default=True)
     users = relationship('User', secondary=user_unidadeSaude, back_populates='unidadeSaude')    
 
 class Role(Base):

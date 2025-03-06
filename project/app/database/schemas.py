@@ -24,7 +24,7 @@ class AdminUserEdit(BaseModel):
     cpf: Optional[str] = None
     unidade_saude: Optional[int] = None
     role_id: Optional[int] = None
-    is_active: Optional[bool] = None
+    fl_ativo: Optional[bool] = None
 
 class Token(BaseModel):
     access_token: str
@@ -56,7 +56,7 @@ class UserCreateSupervisorSchema(BaseModel):
 class SupervisorUserEdit(BaseModel):
     cpf: Optional[str] = None
     role_id: Optional[int] = None
-    is_active: Optional[bool] = None
+    fl_ativo: Optional[bool] = None
 
 
 class RoleOut(BaseModel):
@@ -73,7 +73,7 @@ class UnidadeSaudeOut(BaseModel):
     nome_localizacao: str
     codigo_unidade_saude: str
     cidade_unidade_saude: str
-    is_active: bool
+    fl_ativo: bool
 
     class Config:
         orm_mode = True
@@ -83,7 +83,7 @@ class UserOut(BaseModel):
     nome_usuario: Optional[str] = None
     email: EmailStr
     cpf: str
-    is_active: bool
+    fl_ativo: bool
     roles: List[RoleOut] = []
     unidadeSaude: List[UnidadeSaudeOut] = []
 
@@ -95,14 +95,14 @@ class UnidadeSaudeCreateSchema(BaseModel):
     nome_localizacao: str
     codigo_unidade_saude: str
     cidade_unidade_saude: str
-    is_active: bool
+    fl_ativo: bool
 
 class UnidadeSaudeUpdateSchema(BaseModel):
     nome_unidade_saude: Optional[str] = None
     nome_localizacao: Optional[str] = None
     codigo_unidade_saude: Optional[str] = None
     cidade_unidade_saude: Optional[str] = None
-    is_active: Optional[bool] = None
+    fl_ativo: Optional[bool] = None
 
 class sexoEnum(str, Enum):
     masculino = "M"
@@ -191,7 +191,8 @@ class UserResponseSchema(BaseModel):
     nome_usuario: str
     email: str
     cpf: str
-    is_active: bool
+    fl_ativo: bool
+    nivel_acesso: Optional[int] = None 
 
     class Config:
         orm_mode = True

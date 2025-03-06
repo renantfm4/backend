@@ -51,7 +51,7 @@ async def cadastrar_usuario(user_data: UserCreateAdminSchema,
     new_user = models.User(
         email=user_data.email,
         cpf=user_data.cpf,
-        is_active=False, 
+        fl_ativo=False, 
         id_usuario_criacao = current_user.id
     )
     
@@ -109,7 +109,7 @@ async def editar_usuario(user_data: AdminUserEdit,
     
     user.unidadeSaude = [unidade]
     user.roles = [role]
-    user.is_active = user_data.is_active
+    user.fl_ativo = user_data.fl_ativo
     user.id_usuario_atualizacao = current_user.id
 
     await db.commit()

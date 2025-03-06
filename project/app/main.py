@@ -15,7 +15,6 @@ async def lifespan(app: FastAPI):
     async with database.engine.begin() as conn:
         await conn.run_sync(models.Base.metadata.create_all)
 
-        
     print("Database tables created successfully")
     
     # await seed_data()

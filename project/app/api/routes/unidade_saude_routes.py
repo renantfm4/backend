@@ -30,7 +30,7 @@ async def cadastrar_unidade_saude(
         nome_localizacao=unidade_data.nome_localizacao,
         codigo_unidade_saude=unidade_data.codigo_unidade_saude,
         cidade_unidade_saude=unidade_data.cidade_unidade_saude,
-        is_active=unidade_data.is_active,
+        fl_ativo=unidade_data.fl_ativo,
         id_usuario_criacao = current_user.id
     )
     
@@ -89,12 +89,32 @@ async def listar_usuarios_unidade_saude(
     unidade_id: int, 
     db: AsyncSession = Depends(get_db),
     current_user: models.User = Depends(require_role(RoleEnum.SUPERVISOR))
-    ):
-    stmt = select(models.UnidadeSaude).filter(models.UnidadeSaude.id == unidade_id).options(selectinload(models.UnidadeSaude.users.and_(models.User.is_active == True)))
+):
+    stmt = select(models.UnidadeSaude).filter(models.UnidadeSaude.id == unidade_id).options(
+        selectinload(models.UnidadeSaude.users)
+        .selectinload(models.User.roles)
+    )
     result = await db.execute(stmt)
     unidade = result.scalars().first()
     
     if not unidade:
         raise HTTPException(status_code=404, detail="Unidade de Saúde não encontrada")
     
-    return unidade.users
+    users_with_nivel = []
+    for user in unidade.users:
+        if not user.senha_hash or not user.nome_usuario:
+            continue
+
+        nivel_acesso = max([role.nivel_acesso for role in user.roles]) if user.roles else None
+
+        user_dict = {
+            "id": user.id,
+            "nome_usuario": user.nome_usuario,
+            "email": user.email,
+            "cpf": user.cpf,
+            "fl_ativo": user.fl_ativo,
+            "nivel_acesso": nivel_acesso
+        }
+        users_with_nivel.append(user_dict)
+    
+    return users_with_nivel

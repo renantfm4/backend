@@ -20,7 +20,7 @@ ADMIN_DATA = {
     "email": os.getenv("ADMIN_EMAIL_INICIAL"),
     "cpf": os.getenv("ADMIN_CPF_INICIAL"),
     "senha": os.getenv("ADMIN_SENHA_INICIAL"),
-    "is_active": True,
+    "fl_ativo": True,
 }
 
 async def seed_data():
@@ -46,7 +46,7 @@ async def seed_data():
                 email=ADMIN_DATA["email"],
                 cpf=ADMIN_DATA["cpf"],
                 senha_hash=get_password_hash(ADMIN_DATA["senha"]),
-                is_active=ADMIN_DATA["is_active"],
+                fl_ativo=ADMIN_DATA["fl_ativo"],
             )
             result = await session.execute(select(Role).filter(Role.name == "Admin"))
             admin_role = result.scalars().first()
