@@ -87,7 +87,6 @@ async def editar_usuario_supervisor(
     current_user: models.User = Depends(require_role(RoleEnum.SUPERVISOR))
 ):
     # Busca o usuário a ser editado pelo CPF
-    # stmt = select(models.User).filter(models.User.cpf == user_data.cpf)
     stmt = (
         select(models.User)
         .options(
@@ -102,22 +101,21 @@ async def editar_usuario_supervisor(
     if not user:
         raise HTTPException(status_code=404, detail="Usuário não encontrado")
     
-    # Opcional: verifique se o usuário pertence à mesma Unidade de Saúde do supervisor
-    # Assumindo que cada usuário possui pelo menos uma Unidade de Saúde e que o supervisor possui uma única unidade vinculada.
+    if user.id == current_user.id and not user_data.fl_ativo:
+        raise HTTPException(status_code=400, detail="Você não pode inativar a si mesmo")
+
     if not current_user.unidadeSaude:
         raise HTTPException(status_code=400, detail="Supervisor não possui Unidade de Saúde definida")
     if not user.unidadeSaude:
         raise HTTPException(status_code=400, detail="Usuário não possui Unidade de Saúde definida")
     
     supervisor_unidade = current_user.unidadeSaude[0].id
-    # Caso o usuário esteja associado a múltiplas unidades, verifique se a unidade do supervisor consta entre elas
     if supervisor_unidade not in [unidade.id for unidade in user.unidadeSaude]:
         raise HTTPException(
             status_code=403, 
             detail="Você não tem permissão para editar esse usuário, pois ele não pertence à sua Unidade de Saúde"
         )
     
-    # Busca a role informada
     stmt = select(models.Role).filter(models.Role.id == user_data.role_id)
     result = await db.execute(stmt)
     role = result.scalars().first()
@@ -125,7 +123,6 @@ async def editar_usuario_supervisor(
     if not role:
         raise HTTPException(status_code=404, detail="Permissão não encontrada")
     
-    # Garante que a role escolhida seja de nível SUPERVISOR ou inferior
     if role.nivel_acesso > RoleEnum.SUPERVISOR:
         raise HTTPException(
             status_code=400, 

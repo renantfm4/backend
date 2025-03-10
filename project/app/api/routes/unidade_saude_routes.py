@@ -2,6 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from typing import List
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
+from sqlalchemy import func
 from sqlalchemy.orm import selectinload
 from ...database.database import get_db
 from ...core.hierarchy import require_role, RoleEnum
@@ -48,6 +49,17 @@ async def listar_unidades_saude(db: AsyncSession = Depends(get_db)):
     
     return unidades
 
+# @router.get("/listar-unidade-saude/{unidade_id}")
+# async def listar_unidade_saude(unidade_id: int, db: AsyncSession = Depends(get_db)):
+#     stmt = select(models.UnidadeSaude).filter(models.UnidadeSaude.id == unidade_id)
+#     result = await db.execute(stmt)
+#     unidade = result.scalars().first()
+    
+#     if not unidade: 
+#         raise HTTPException(status_code=404, detail="Unidade de Saúde não encontrada")
+    
+#     return unidade
+
 @router.get("/listar-unidade-saude/{unidade_id}")
 async def listar_unidade_saude(unidade_id: int, db: AsyncSession = Depends(get_db)):
     stmt = select(models.UnidadeSaude).filter(models.UnidadeSaude.id == unidade_id)
@@ -57,7 +69,40 @@ async def listar_unidade_saude(unidade_id: int, db: AsyncSession = Depends(get_d
     if not unidade:
         raise HTTPException(status_code=404, detail="Unidade de Saúde não encontrada")
     
-    return unidade
+    # Count patients
+    stmt_count = select(func.count(models.Atendimento.paciente_id.distinct())).filter(
+        models.Atendimento.unidade_saude_id == unidade_id
+    )
+    result_count = await db.execute(stmt_count)
+    total_pacientes = result_count.scalar() or 0
+
+    # Count professionals (Supervisor/Pesquisador)
+    stmt_profissionais = (
+        select(func.count(models.User.id.distinct()))
+        .select_from(models.User)
+        .join(models.User.unidadeSaude)
+        .join(models.User.roles)
+        .filter(
+            models.UnidadeSaude.id == unidade_id,
+            models.Role.name.in_(["Supervisor", "Pesquisador"]),
+            models.User.fl_ativo == True
+        )
+    )
+    result_profissionais = await db.execute(stmt_profissionais)
+    total_profissionais = result_profissionais.scalar() or 0
+
+    unidade_dict = {
+        "id": unidade.id,
+        "nome_unidade_saude": unidade.nome_unidade_saude,
+        "nome_localizacao": unidade.nome_localizacao,
+        "codigo_unidade_saude": unidade.codigo_unidade_saude,
+        "cidade_unidade_saude": unidade.cidade_unidade_saude,
+        "fl_ativo": unidade.fl_ativo,
+        "total_pacientes": total_pacientes,
+        "total_profissionais": total_profissionais
+    }
+    
+    return unidade_dict
 
 @router.post("/editar-unidade-saude/{unidade_id}")
 async def editar_unidade_saude(

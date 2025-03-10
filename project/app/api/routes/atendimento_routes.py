@@ -10,41 +10,131 @@ from ...database.schemas import PacienteCreateSchema, TermoConsentimentoCreateSc
 
 router = APIRouter()
 
-@router.post("/cadastrar-atendimento")
-async def cadastrar_atendimento(
+# @router.post("/cadastrar-atendimento")
+# async def cadastrar_atendimento(
+#     paciente_data: PacienteCreateSchema,
+#     db: AsyncSession = Depends(get_db),
+#     current_user: models.User = Depends(require_role(RoleEnum.PESQUISADOR))
+# ):
+
+#     stmt = select(models.Paciente).filter(models.Paciente.cpf_paciente == paciente_data.cpf_paciente)
+#     result = await db.execute(stmt)
+#     existing_paciente = result.scalars().first()
+
+#     if not existing_paciente:
+#         new_paciente = models.Paciente(
+#             nome_paciente=paciente_data.nome_paciente,
+#             data_nascimento=paciente_data.data_nascimento,
+#             sexo=paciente_data.sexo,
+#             sexo_outro=paciente_data.sexo_outro,
+#             cpf_paciente=paciente_data.cpf_paciente,
+#             num_cartao_sus=paciente_data.num_cartao_sus,
+#             endereco_paciente=paciente_data.endereco_paciente,
+#             telefone_paciente=paciente_data.telefone_paciente,
+#             email_paciente=paciente_data.email_paciente,
+#             autoriza_pesquisa=paciente_data.autoriza_pesquisa,
+#             id_usuario_criacao=current_user.id
+#         )
+#         db.add(new_paciente)
+#         await db.commit()
+#         await db.refresh(new_paciente)
+#     else:
+#         raise HTTPException(status_code=400, detail="Paciente já cadastrado")
+        
+
+#     new_atendimento = models.Atendimento(
+#         paciente_id=new_paciente.id,
+#         user_id=current_user.id,
+#         id_usuario_criacao=current_user.id
+#     )
+
+#     db.add(new_atendimento)
+#     await db.commit()
+#     await db.refresh(new_atendimento)
+
+#     # return new_atendimento
+#     return {
+#         "id": new_atendimento.id,
+#         "paciente_id": new_paciente.id,
+#         "nome_paciente": new_paciente.nome_paciente,
+#         "cpf_paciente": new_paciente.cpf_paciente
+#     }
+
+# ...existing code...
+
+@router.post("/cadastrar-paciente", status_code=201)
+async def cadastrar_paciente(
     paciente_data: PacienteCreateSchema,
     db: AsyncSession = Depends(get_db),
     current_user: models.User = Depends(require_role(RoleEnum.PESQUISADOR))
 ):
-
+    # Check if patient already exists
     stmt = select(models.Paciente).filter(models.Paciente.cpf_paciente == paciente_data.cpf_paciente)
     result = await db.execute(stmt)
     existing_paciente = result.scalars().first()
 
-    if not existing_paciente:
-        new_paciente = models.Paciente(
-            nome_paciente=paciente_data.nome_paciente,
-            data_nascimento=paciente_data.data_nascimento,
-            sexo=paciente_data.sexo,
-            sexo_outro=paciente_data.sexo_outro,
-            cpf_paciente=paciente_data.cpf_paciente,
-            num_cartao_sus=paciente_data.num_cartao_sus,
-            endereco_paciente=paciente_data.endereco_paciente,
-            telefone_paciente=paciente_data.telefone_paciente,
-            email_paciente=paciente_data.email_paciente,
-            autoriza_pesquisa=paciente_data.autoriza_pesquisa,
-            id_usuario_criacao=current_user.id
-        )
-        db.add(new_paciente)
-        await db.commit()
-        await db.refresh(new_paciente)
-    else:
+    if existing_paciente:
         raise HTTPException(status_code=400, detail="Paciente já cadastrado")
-        
+
+    # Create new patient
+    new_paciente = models.Paciente(
+        nome_paciente=paciente_data.nome_paciente,
+        data_nascimento=paciente_data.data_nascimento,
+        sexo=paciente_data.sexo,
+        sexo_outro=paciente_data.sexo_outro,
+        cpf_paciente=paciente_data.cpf_paciente,
+        num_cartao_sus=paciente_data.num_cartao_sus,
+        endereco_paciente=paciente_data.endereco_paciente,
+        telefone_paciente=paciente_data.telefone_paciente,
+        email_paciente=paciente_data.email_paciente,
+        autoriza_pesquisa=paciente_data.autoriza_pesquisa,
+        id_usuario_criacao=current_user.id
+    )
+    
+    db.add(new_paciente)
+    await db.commit()
+    await db.refresh(new_paciente)
+    
+    return {
+        "id": new_paciente.id,
+        "nome_paciente": new_paciente.nome_paciente,
+        "data_nascimento": new_paciente.data_nascimento,
+        "sexo": new_paciente.sexo,
+        "sexo_outro": new_paciente.sexo_outro,
+        "cpf_paciente": new_paciente.cpf_paciente,
+        "num_cartao_sus": new_paciente.num_cartao_sus,
+        "endereco_paciente": new_paciente.endereco_paciente,
+        "telefone_paciente": new_paciente.telefone_paciente,
+        "email_paciente": new_paciente.email_paciente,
+        "autoriza_pesquisa": new_paciente.autoriza_pesquisa
+    }
+
+@router.post("/cadastrar-atendimento", status_code=201)
+async def cadastrar_atendimento(
+    paciente_id: int,
+    db: AsyncSession = Depends(get_db),
+    current_user: models.User = Depends(require_role(RoleEnum.PESQUISADOR))
+):
+    stmt = select(models.Paciente).filter(models.Paciente.id == paciente_id)
+    result = await db.execute(stmt)
+    paciente = result.scalars().first()
+
+    if not paciente:
+        raise HTTPException(status_code=404, detail="Paciente não encontrado")
+
+    stmt_unidade = select(models.UnidadeSaude).join(models.User.unidadeSaude).filter(
+        models.User.id == current_user.id
+    )
+    result_unidade = await db.execute(stmt_unidade)
+    unidade_saude = result_unidade.scalars().first()
+
+    if not unidade_saude:
+        raise HTTPException(status_code=403, detail="Usuário não está associado a nenhuma unidade de saúde")
 
     new_atendimento = models.Atendimento(
-        paciente_id=new_paciente.id,
+        paciente_id=paciente_id,
         user_id=current_user.id,
+        unidade_saude_id=unidade_saude.id,
         id_usuario_criacao=current_user.id
     )
 
@@ -52,12 +142,14 @@ async def cadastrar_atendimento(
     await db.commit()
     await db.refresh(new_atendimento)
 
-    # return new_atendimento
     return {
         "id": new_atendimento.id,
-        "paciente_id": new_paciente.id,
-        "nome_paciente": new_paciente.nome_paciente,
-        "cpf_paciente": new_paciente.cpf_paciente
+        "paciente_id": paciente.id,
+        "nome_paciente": paciente.nome_paciente,
+        "cpf_paciente": paciente.cpf_paciente,
+        "data_atendimento": new_atendimento.data_atendimento,
+        "unidade_saude_id": unidade_saude.id,
+        "unidade_saude_nome": unidade_saude.nome_unidade_saude
     }
 
 

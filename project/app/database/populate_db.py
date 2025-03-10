@@ -245,7 +245,8 @@ async def populate_db():
                 user_id=usuario_atendimento.id,
                 termo_consentimento_id=termo.id,
                 saude_geral_id=saude_geral.id,
-                avaliacao_fototipo_id=avaliacao_fototipo.id
+                avaliacao_fototipo_id=avaliacao_fototipo.id,
+                unidade_saude_id=usuario_atendimento.unidadeSaude[0].id
             )
             session.add(atendimento)
             await session.commit()

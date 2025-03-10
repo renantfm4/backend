@@ -64,6 +64,9 @@ class Atendimento(AuditMixin, Base):
     saude_geral = relationship('SaudeGeral')
     avaliacao_fototipo_id = Column(Integer, ForeignKey('avaliacao_fototipo.id'))
     avaliacao_fototipo = relationship('AvaliacaoFototipo')
+    
+    unidade_saude_id = Column(Integer, ForeignKey('unidadeSaude.id'))
+    unidade_saude = relationship('UnidadeSaude')
 
 
 class RegistroLesoes(Base):

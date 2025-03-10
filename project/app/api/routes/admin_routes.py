@@ -76,7 +76,6 @@ async def editar_usuario(user_data: AdminUserEdit,
                          current_user: models.User = Depends(require_role(RoleEnum.ADMIN))):
     
     # editar unidade de saude e role de um usuario
-    # stmt = select(models.User).filter(models.User.cpf == user_data.cpf)
     stmt = (
         select(models.User)
         .options(
@@ -106,6 +105,10 @@ async def editar_usuario(user_data: AdminUserEdit,
 
     if not role:
         raise HTTPException(status_code=404, detail="Permissão não encontrada")
+    
+    # Verifica se o usuário está tentando inativar a si mesmo
+    if user.id == current_user.id and not user_data.fl_ativo:
+        raise HTTPException(status_code=400, detail="Você não pode inativar a si mesmo")
     
     user.unidadeSaude = [unidade]
     user.roles = [role]
