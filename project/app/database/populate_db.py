@@ -16,6 +16,9 @@ from .models import (
     TermoConsentimento,
     SaudeGeral,
     AvaliacaoFototipo,
+    HistoricoCancerPele,
+    FatoresRiscoProtecao,
+    InvestigacaoLesoesSuspeitas,
     RegistroLesoes,
     RegistroLesoesImagens,
     LocalLesao,
@@ -238,6 +241,69 @@ async def populate_db():
             )
             session.add(avaliacao_fototipo)
             await session.commit()
+
+            
+            # Cria um objeto HistoricoCancerPele com valores fictícios
+            tem_historico_familiar = random.choice([True, False])
+            historico_cancer_pele = HistoricoCancerPele(
+                historico_familiar=tem_historico_familiar,
+                grau_parentesco=random.choice(['Pai', 'Mãe', 'Avô/Avó', 'Irmão/Irmã', 'Outro']) if tem_historico_familiar else None,
+                tipo_cancer_familiar=random.choice(['Melanoma', 'Carcinoma Basocelular', 'Carcinoma Espinocelular', 'Outro']) if tem_historico_familiar else None,
+                tipo_cancer_familiar_outro="Cancer de pele raro" if tem_historico_familiar and random.choice([True, False]) else None,
+                
+                diagnostico_pessoal=random.choice([True, False]),
+                tipo_cancer_pessoal=random.choice(['Melanoma', 'Carcinoma Basocelular', 'Carcinoma Espinocelular', 'Outro']) if random.choice([True, False]) else None,
+                tipo_cancer_pessoal_outro=None,
+                
+                lesoes_precancerigenas=random.choice([True, False]),
+                tratamento_lesoes=random.choice([True, False]),
+                tipo_tratamento=random.choice(['Cirurgia', 'Crioterapia', 'Radioterapia', 'Outro']) if random.choice([True, False]) else None,
+                tipo_tratamento_outro=None
+            )
+            session.add(historico_cancer_pele)
+            await session.commit()
+            
+            # Cria um objeto FatoresRiscoProtecao com valores fictícios
+            exposicao_solar = random.choice([True, False])
+            fatores_risco_protecao = FatoresRiscoProtecao(
+                exposicao_solar_prolongada=exposicao_solar,
+                frequencia_exposicao_solar=random.choice(['Diariamente', 'Algumas vezes por semana', 'Ocasionalmente']) if exposicao_solar else None,
+                
+                queimaduras_graves=random.choice([True, False]),
+                quantidade_queimaduras=random.choice(['1-2', '3-5', 'Mais de 5']) if random.choice([True, False]) else None,
+                
+                uso_protetor_solar=random.choice([True, False]),
+                fator_protecao_solar=random.choice(['15', '30', '50', '70', '100 ou mais']) if random.choice([True, False]) else None,
+                
+                uso_chapeu_roupa_protecao=random.choice([True, False]),
+                
+                bronzeamento_artificial=random.choice([True, False]),
+                
+                checkups_dermatologicos=random.choice([True, False]),
+                frequencia_checkups=random.choice(['Anualmente', 'A cada 6 meses', 'Outro']) if random.choice([True, False]) else None,
+                frequencia_checkups_outro=None,
+                
+                participacao_campanhas_prevencao=random.choice([True, False])
+            )
+            session.add(fatores_risco_protecao)
+            await session.commit()
+            
+            # Cria um objeto InvestigacaoLesoesSuspeitas com valores fictícios
+            investigacao_lesoes = InvestigacaoLesoesSuspeitas(
+                mudanca_pintas_manchas=random.choice([True, False]),
+                sintomas_lesoes=random.choice([True, False]),
+                
+                tempo_alteracoes=random.choice(['Menos de 1 mês', '1-3 meses', '3-6 meses', 'Mais de 6 meses']) if random.choice([True, False]) else None,
+                
+                caracteristicas_lesoes=random.choice([True, False]),
+                
+                consulta_medica=random.choice([True, False]),
+                diagnostico_lesoes="Lesão benigna, apenas monitoramento recomendado" if random.choice([True, False]) else None
+            )
+            session.add(investigacao_lesoes)
+            await session.commit()
+
+
 
             # Cria o atendimento relacionando os objetos acima
             atendimento = Atendimento(
