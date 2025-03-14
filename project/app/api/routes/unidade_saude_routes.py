@@ -49,17 +49,6 @@ async def listar_unidades_saude(db: AsyncSession = Depends(get_db)):
     
     return unidades
 
-# @router.get("/listar-unidade-saude/{unidade_id}")
-# async def listar_unidade_saude(unidade_id: int, db: AsyncSession = Depends(get_db)):
-#     stmt = select(models.UnidadeSaude).filter(models.UnidadeSaude.id == unidade_id)
-#     result = await db.execute(stmt)
-#     unidade = result.scalars().first()
-    
-#     if not unidade: 
-#         raise HTTPException(status_code=404, detail="Unidade de Saúde não encontrada")
-    
-#     return unidade
-
 @router.get("/listar-unidade-saude/{unidade_id}")
 async def listar_unidade_saude(unidade_id: int, db: AsyncSession = Depends(get_db)):
     stmt = select(models.UnidadeSaude).filter(models.UnidadeSaude.id == unidade_id)

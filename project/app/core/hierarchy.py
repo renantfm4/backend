@@ -24,8 +24,3 @@ def require_role(min_role: RoleEnum):
             )
         return current_user
     return role_checker
-
-
-# user_max_level = max(role.nivel_acesso for role in current_user.roles)
-# if role.nivel_acesso > user_max_level:
-#     raise HTTPException(status_code=400, detail="Você não pode atribuir roles com nível de acesso maior que o seu.")
