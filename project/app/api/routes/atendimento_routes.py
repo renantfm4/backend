@@ -6,7 +6,7 @@ from ...database.database import get_db
 from ...core.hierarchy import require_role, RoleEnum
 from ...database import models
 from ...database.schemas import PacienteCreateSchema, TermoConsentimentoCreateSchema, SaudeGeralCreateSchema, AvaliacaoFototipoCreateSchema, RegistroLesoesCreateSchema, RegistroLesoesCreateSchema, LocalLesaoSchema, HistoricoCancerPeleCreateSchema, FatoresRiscoProtecaoCreateSchema, InvestigacaoLesoesSuspeitasCreateSchema, InformacoesCompletasCreateSchema
-
+from ...utils.minio import upload_to_minio
 
 router = APIRouter()
 
@@ -149,17 +149,17 @@ async def cadastrar_termo_consentimento(
     if atendimento.termo_consentimento_id:
         raise HTTPException(status_code=400, detail="Atendimento já possui um termo de consentimento")
 
-    # Simula o armazenamento do arquivo e gera um URL (substituir por S3 ou outro armazenamento real)
-    fake_url = f"https://fake-storage.com/uploads/{file.filename}"
+    arquivo_metadata = await upload_to_minio(file, bucket_name="termos-consentimento")
 
     new_termo = models.TermoConsentimento(
-        arquivo_url=fake_url
+        arquivo_url=arquivo_metadata["url"],
     )
 
     db.add(new_termo)
     await db.commit()
     await db.refresh(new_termo)
 
+    # Associa o termo ao atendimento
     atendimento.termo_consentimento_id = new_termo.id
     await db.commit()
     await db.refresh(atendimento)
@@ -168,7 +168,7 @@ async def cadastrar_termo_consentimento(
         "message": "Termo de Consentimento cadastrado com sucesso!",
         "termo_consentimento": {
             "id": new_termo.id,
-            "arquivo_url": fake_url
+            "arquivo_url": arquivo_metadata["url"]
         }
     }
 
@@ -423,17 +423,24 @@ async def cadastrar_lesao(
     await db.refresh(new_lesao)
 
     imagens_urls = []
-    if files:
+    if files:      
         for file in files:
-            fake_url = f"https://fake-storage.com/uploads/{file.filename}"
-            imagens_urls.append(fake_url)
+            try:
+                # Upload da imagem para o MinIO
+                arquivo_metadata = await upload_to_minio(file, bucket_name="imagens-lesoes")
+                imagens_urls.append(arquivo_metadata["url"])
 
-            # Cria o registro da imagem no banco
-            new_imagem = models.RegistroLesoesImagens(
-                arquivo_url=fake_url,
-                registro_lesoes_id=new_lesao.id
-            )
-            db.add(new_imagem)
+                # Cria o registro da imagem no banco
+                new_imagem = models.RegistroLesoesImagens(
+                    arquivo_url=arquivo_metadata["url"],  # Just use the URL string, not the entire dict
+                    registro_lesoes_id=new_lesao.id
+                )
+                db.add(new_imagem)
+            except Exception as e:
+                # Log the error but continue with other files
+                print(f"Erro ao fazer upload da imagem {file.filename}: {str(e)}")
+                continue
+                
         await db.commit()
 
     return {
