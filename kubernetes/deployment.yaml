@@ -1,0 +1,102 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: dermacam-app
+  namespace: dermacam
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: dermacam-app
+  template:
+    metadata:
+      labels:
+        app: dermacam-app
+    spec:
+      containers:
+        - name: dermacam-app
+          image: registry.gitlab.com/lappis-unb/decidimbr/dermalert:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 8000
+          env:
+          - name: DATABASE_URL
+            value: "postgresql+asyncpg://$(DB_USER):$(DB_PASSWORD)@$(DB_HOST):$(DB_PORT)/$(DB_NAME)"
+          - name: ADMIN_NOME_INICIAL
+            valueFrom:
+              secretKeyRef:
+                name: dermacam-secret
+                key: ADMIN_NOME_INICIAL
+          - name: ADMIN_EMAIL_INICIAL
+            valueFrom:
+              secretKeyRef:
+                name: dermacam-secret
+                key: ADMIN_EMAIL_INICIAL
+          - name: ADMIN_CPF_INICIAL
+            valueFrom:
+              secretKeyRef:
+                name: dermacam-secret
+                key: ADMIN_CPF_INICIAL
+          - name: ADMIN_SENHA_INICIAL
+            valueFrom:
+              secretKeyRef:
+                name: dermacam-secret
+                key: ADMIN_SENHA_INICIAL
+          - name: MINIO_ENDPOINT
+            valueFrom:
+              secretKeyRef:
+                name: dermacam-secret
+                key: MINIO_ENDPOINT
+          - name: MINIO_ACCESS_KEY
+            valueFrom:
+              secretKeyRef:
+                name: dermacam-secret
+                key: MINIO_ACCESS_KEY
+          - name: MINIO_SECRET_KEY
+            valueFrom:
+              secretKeyRef:
+                name: dermacam-secret
+                key: MINIO_SECRET_KEY
+          - name: MINIO_SECURE
+            valueFrom:
+              secretKeyRef:
+                name: dermacam-secret
+                key: MINIO_SECURE
+          - name: SMTP_SERVER
+            valueFrom:
+              secretKeyRef:
+                name: dermacam-secret
+                key: SMTP_SERVER
+          - name: SMTP_PORT
+            valueFrom:
+              secretKeyRef:
+                name: dermacam-secret
+                key: SMTP_PORT
+          - name: SMTP_USERNAME
+            valueFrom:
+              secretKeyRef:
+                name: dermacam-secret
+                key: SMTP_USERNAME
+          - name: SMTP_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: dermacam-secret
+                key: SMTP_PASSWORD
+          envFrom:
+          - secretRef:
+              name: dermacam-secret
+          command: ["/bin/sh", "-c"]
+          args:
+            - sed -i 's|^sqlalchemy.url = .*|sqlalchemy.url = postgresql+asyncpg://dermacam:bWFub3MtZGVybWEtY2Ft@10.0.0.73:5432/foo|' /usr/src/app/alembic.ini && poetry run uvicorn app.main:app --reload --workers 1 --host 0.0.0.0 --port 8000
+          resources:
+            limits:
+              memory: 1Gi
+              cpu: "1"
+            requests:
+              memory: 512Mi
+              cpu: "1"
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 0
+      maxSurge: 1
