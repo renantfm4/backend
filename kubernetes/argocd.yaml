@@ -6,9 +6,10 @@ metadata:
 spec:
   project: default
   source:
-    repoURL: "https://github.com/DermAlert/backend.git"
+    repoURL: "https://github.com/Arthrok/backend.git"
     path: "kubernetes"
     targetRevision: main
+    kustomize: {}
     directory:
       recurse: true
   destination:
