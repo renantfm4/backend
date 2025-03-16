@@ -16,6 +16,7 @@ python-jose = "3.3.0"
 pydantic = { version = "2.10", extras = ["email"] }
 passlib = "1.7.4"
 python-multipart = "0.0.20"
+minio = "7.2.15"
 
 [build-system]
 requires = ["poetry>=1.0"]

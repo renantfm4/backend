@@ -64,6 +64,13 @@ class Atendimento(AuditMixin, Base):
     saude_geral = relationship('SaudeGeral')
     avaliacao_fototipo_id = Column(Integer, ForeignKey('avaliacao_fototipo.id'))
     avaliacao_fototipo = relationship('AvaliacaoFototipo')
+    historico_cancer_pele_id = Column(Integer, ForeignKey('historicoCancerPele.id'))
+    historico_cancer_pele = relationship('HistoricoCancerPele')
+    fatores_risco_protecao_id = Column(Integer, ForeignKey('fatoresRiscoProtecao.id'))
+    fatores_risco_protecao = relationship('FatoresRiscoProtecao')
+    investigacao_lesoes_suspeitas_id = Column(Integer, ForeignKey('investigacaoLesoesSuspeitas.id'))
+    investigacao_lesoes_suspeitas = relationship('InvestigacaoLesoesSuspeitas')
+    
     
     unidade_saude_id = Column(Integer, ForeignKey('unidadeSaude.id'))
     unidade_saude = relationship('UnidadeSaude')
@@ -84,7 +91,7 @@ class RegistroLesoes(Base):
 class RegistroLesoesImagens(Base):
     __tablename__ = 'registroLesoesImagens'
     id = Column(Integer, primary_key=True, index=True)
-    arquivo_url = Column(String(300), nullable=False)
+    arquivo_url = Column(String(400), nullable=False)
     registro_lesoes_id = Column(Integer, ForeignKey('registroLesoes.id'))
     registro_lesoes = relationship('RegistroLesoes')
 
@@ -111,7 +118,7 @@ class Paciente(AuditMixin, Base):
 class TermoConsentimento(Base):
     __tablename__ = 'termoConsentimento'
     id = Column(Integer, primary_key=True, index=True)
-    arquivo_url = Column(String(300), nullable=False)
+    arquivo_url = Column(String(400), nullable=False)
     data_acordo = Column(TIMESTAMP, server_default=func.now())
 
 class SaudeGeral(Base):
@@ -153,3 +160,59 @@ class AvaliacaoFototipo(Base):
         CheckConstraint(bronzeamento.in_([0, 2, 4, 6]), name="check_bronzeamento"),
         CheckConstraint(sensibilidade_solar.in_([0, 1, 2, 3, 4]), name="check_sensibilidade_solar"),
     )
+
+
+class HistoricoCancerPele(Base):
+    __tablename__ = 'historicoCancerPele'
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    historico_familiar = Column(Boolean, nullable=False, default=False)
+    grau_parentesco = Column(Enum('Pai', 'Mãe', 'Avô/Avó', 'Irmão/Irmã', 'Outro', name='grau_parentesco_enum'), nullable=True)
+    tipo_cancer_familiar = Column(Enum('Melanoma', 'Carcinoma Basocelular', 'Carcinoma Espinocelular', 'Outro', name='tipo_cancer_familiar_enum'), nullable=True)
+    tipo_cancer_familiar_outro = Column(String(100), nullable=True)
+    
+    diagnostico_pessoal = Column(Boolean, nullable=False, default=False)
+    tipo_cancer_pessoal = Column(Enum('Melanoma', 'Carcinoma Basocelular', 'Carcinoma Espinocelular', 'Outro', name='tipo_cancer_pessoal_enum'), nullable=True)
+    tipo_cancer_pessoal_outro = Column(String(100), nullable=True)
+    
+    lesoes_precancerigenas = Column(Boolean, nullable=False, default=False)
+    tratamento_lesoes = Column(Boolean, nullable=False, default=False)
+    tipo_tratamento = Column(Enum('Cirurgia', 'Crioterapia', 'Radioterapia', 'Outro', name='tipo_tratamento_enum'), nullable=True)
+    tipo_tratamento_outro = Column(String(100), nullable=True)
+
+
+class FatoresRiscoProtecao(Base):
+    __tablename__ = 'fatoresRiscoProtecao'
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    exposicao_solar_prolongada = Column(Boolean, nullable=False, default=False)
+    frequencia_exposicao_solar = Column(Enum('Diariamente', 'Algumas vezes por semana', 'Ocasionalmente', name='frequencia_exposicao_enum'), nullable=True)
+    
+    queimaduras_graves = Column(Boolean, nullable=False, default=False)
+    quantidade_queimaduras = Column(Enum('1-2', '3-5', 'Mais de 5', name='quantidade_queimaduras_enum'), nullable=True)
+    
+    uso_protetor_solar = Column(Boolean, nullable=False, default=False)
+    fator_protecao_solar = Column(Enum('15', '30', '50', '70', '100 ou mais', name='fator_protecao_enum'), nullable=True)
+    
+    uso_chapeu_roupa_protecao = Column(Boolean, nullable=False, default=False)
+    
+    bronzeamento_artificial = Column(Boolean, nullable=False, default=False)
+    
+    checkups_dermatologicos = Column(Boolean, nullable=False, default=False)
+    frequencia_checkups = Column(Enum('Anualmente', 'A cada 6 meses', 'Outro', name='frequencia_checkups_enum'), nullable=True)
+    frequencia_checkups_outro = Column(String(100), nullable=True)
+    
+    participacao_campanhas_prevencao = Column(Boolean, nullable=False, default=False)
+
+
+class InvestigacaoLesoesSuspeitas(Base):
+    __tablename__ = 'investigacaoLesoesSuspeitas'
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    
+    mudanca_pintas_manchas = Column(Boolean, nullable=False, default=False)
+    sintomas_lesoes = Column(Boolean, nullable=False, default=False)
+    
+    tempo_alteracoes = Column(Enum('Menos de 1 mês', '1-3 meses', '3-6 meses', 'Mais de 6 meses', name='tempo_alteracoes_enum'), nullable=True)
+    
+    caracteristicas_lesoes = Column(Boolean, nullable=False, default=False)
+    
+    consulta_medica = Column(Boolean, nullable=False, default=False)
+    diagnostico_lesoes = Column(String(300), nullable=True)
