@@ -87,7 +87,7 @@ spec:
               name: dermacam-secret
           command: ["/bin/sh", "-c"]
           args:
-            - sed -i 's|^sqlalchemy.url = .*|sqlalchemy.url = postgresql+asyncpg://dermacam:bWFub3MtZGVybWEtY2Ft@10.0.0.73:5432/foo|' /usr/src/app/alembic.ini && poetry run uvicorn app.main:app --reload --workers 1 --host 0.0.0.0 --port 8000
+            - poetry run uvicorn app.main:app --reload --workers 1 --host 0.0.0.0 --port 8000
           resources:
             limits:
               memory: 1Gi
