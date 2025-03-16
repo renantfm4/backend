@@ -4,7 +4,8 @@ metadata:
   name: dermacam
   namespace: argocd
   annotations:
-    argocd-image-updater.argoproj.io/image-list: registry.gitlab.com/lappis-unb/decidimbr/dermalert=digest
+    argocd-image-updater.argoproj.io/image-list: dermalert=registry.gitlab.com/lappis-unb/decidimbr/dermalert:latest
+    argocd-image-updater.argoproj.io/dermalert.update-strategy: digest
 spec:
   project: default
   source:
