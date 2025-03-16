@@ -156,11 +156,41 @@ async def populate_db():
         usuarios = [usuario1, usuario2, usuario3, usuario4, usuario5]
 
         # 3. Criação dos locais de lesão
-        local1 = LocalLesao(nome="Face")
-        local2 = LocalLesao(nome="Tronco")
-        local3 = LocalLesao(nome="Membros Superiores")
-        local4 = LocalLesao(nome="Membros Inferiores")
-        session.add_all([local1, local2, local3, local4])
+        novos_locais = [
+            LocalLesao(nome="Cabeça"),
+            LocalLesao(nome="Face"),
+            LocalLesao(nome="Pescoço"),
+            LocalLesao(nome="Ombro direito"),
+            LocalLesao(nome="Ombro esquerdo"),
+            LocalLesao(nome="Braço direito"),
+            LocalLesao(nome="Braço esquerdo"),
+            LocalLesao(nome="Cotovelo direito"),
+            LocalLesao(nome="Cotovelo esquerdo"),
+            LocalLesao(nome="Antebraço direito"),
+            LocalLesao(nome="Antebraço esquerdo"),
+            LocalLesao(nome="Punho direito"),
+            LocalLesao(nome="Punho esquerdo"),
+            LocalLesao(nome="Mão direita"),
+            LocalLesao(nome="Mão esquerda"),
+            LocalLesao(nome="Tórax"),
+            LocalLesao(nome="Abdômen"),
+            LocalLesao(nome="Lombar"),
+            LocalLesao(nome="Pélvis"),
+            LocalLesao(nome="Quadril direito"),
+            LocalLesao(nome="Quadril esquerdo"),
+            LocalLesao(nome="Coxa direita"),
+            LocalLesao(nome="Coxa esquerda"),
+            LocalLesao(nome="Joelho direito"),
+            LocalLesao(nome="Joelho esquerdo"),
+            LocalLesao(nome="Perna direita"),
+            LocalLesao(nome="Perna esquerda"),
+            LocalLesao(nome="Tornozelo direito"),
+            LocalLesao(nome="Tornozelo esquerdo"),
+            LocalLesao(nome="Pé direito"),
+            LocalLesao(nome="Pé esquerdo")
+        ]
+
+        session.add_all(novos_locais)
         await session.commit()  # Insere os locais na tabela
 
         # Recupera os locais para uso na criação dos registros de lesão
