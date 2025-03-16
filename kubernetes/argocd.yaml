@@ -3,15 +3,15 @@ kind: Application
 metadata:
   name: dermacam
   namespace: argocd
+  annotations:
+    argocd-image-updater.argoproj.io/image-list: registry.gitlab.com/lappis-unb/decidimbr/dermalert=digest
 spec:
   project: default
   source:
-    repoURL: "https://github.com/Arthrok/backend.git"
+    repoURL: "https://github.com/DermAlert/backend.git"
     path: "kubernetes"
     targetRevision: main
     kustomize: {}
-    directory:
-      recurse: true
   destination:
     server: "https://kubernetes.default.svc"
     namespace: dermacam
