@@ -149,7 +149,7 @@ async def cadastrar_termo_consentimento(
     if atendimento.termo_consentimento_id:
         raise HTTPException(status_code=400, detail="Atendimento já possui um termo de consentimento")
 
-    arquivo_metadata = await upload_to_minio(file, bucket_name="termos-consentimento")
+    arquivo_metadata = await upload_to_minio(file, folder_name="termos-consentimento")
 
     new_termo = models.TermoConsentimento(
         arquivo_url=arquivo_metadata["url"],
@@ -427,7 +427,7 @@ async def cadastrar_lesao(
         for file in files:
             try:
                 # Upload da imagem para o MinIO
-                arquivo_metadata = await upload_to_minio(file, bucket_name="imagens-lesoes")
+                arquivo_metadata = await upload_to_minio(file, folder_name="imagens-lesoes")
                 imagens_urls.append(arquivo_metadata["url"])
 
                 # Cria o registro da imagem no banco

@@ -23,8 +23,9 @@ def get_minio_client():
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Erro ao conectar ao MinIO: {str(e)}")
 
-async def upload_to_minio(file, bucket_name, allowed_types=None, max_size_mb=50):
+async def upload_to_minio(file, folder_name, allowed_types=None, max_size_mb=50):
     try:
+        minio_bucket = os.getenv("MINIO_BUCKET")
         client = get_minio_client()
         
         # Validação de tipo de arquivo
@@ -47,19 +48,19 @@ async def upload_to_minio(file, bucket_name, allowed_types=None, max_size_mb=50)
             )
         
         # Verifica se o bucket existe, caso contrário cria
-        if not client.bucket_exists(bucket_name):
-            client.make_bucket(bucket_name)
+        if not client.bucket_exists(minio_bucket):
+            client.make_bucket(minio_bucket)
             # Configurar políticas do bucket se necessário
         
         # Gera um nome único para o objeto usando UUID
         timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
         unique_id = uuid.uuid4().hex[:8]
         file_extension = os.path.splitext(file.filename)[1]
-        object_name = f"termo_{timestamp}_{unique_id}{file_extension}"
+        object_name = f"{folder_name}/{folder_name}_{timestamp}_{unique_id}{file_extension}"
         
         # Upload para o MinIO
         client.put_object(
-            bucket_name=bucket_name,
+            bucket_name=minio_bucket,
             object_name=object_name,
             data=io.BytesIO(file_data),
             length=file_size,
@@ -68,7 +69,7 @@ async def upload_to_minio(file, bucket_name, allowed_types=None, max_size_mb=50)
         
         # Gera URL assinada para acesso temporário (7 dias)
         url = client.presigned_get_object(
-            bucket_name=bucket_name, 
+            bucket_name=minio_bucket, 
             object_name=object_name,
             expires=timedelta(days=7)
         )
@@ -79,7 +80,7 @@ async def upload_to_minio(file, bucket_name, allowed_types=None, max_size_mb=50)
         return {
             "url": url,
             "object_name": object_name,
-            "bucket": bucket_name,
+            "bucket": minio_bucket,
             "content_type": file.content_type,
             "size": file_size
         }
