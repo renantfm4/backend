@@ -91,7 +91,7 @@ class RegistroLesoes(Base):
 class RegistroLesoesImagens(Base):
     __tablename__ = 'registroLesoesImagens'
     id = Column(Integer, primary_key=True, index=True)
-    arquivo_url = Column(String(400), nullable=False)
+    arquivo_path = Column(String(300), nullable=False)
     registro_lesoes_id = Column(Integer, ForeignKey('registroLesoes.id'))
     registro_lesoes = relationship('RegistroLesoes')
 
@@ -118,7 +118,7 @@ class Paciente(AuditMixin, Base):
 class TermoConsentimento(Base):
     __tablename__ = 'termoConsentimento'
     id = Column(Integer, primary_key=True, index=True)
-    arquivo_url = Column(String(400), nullable=False)
+    arquivo_path = Column(String(300), nullable=False)
     data_acordo = Column(TIMESTAMP, server_default=func.now())
 
 class SaudeGeral(Base):

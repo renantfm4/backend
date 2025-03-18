@@ -67,22 +67,11 @@ async def upload_to_minio(file, folder_name, allowed_types=None, max_size_mb=50)
             content_type=file.content_type
         )
         
-        # Gera URL assinada para acesso temporário (7 dias)
-        url = client.presigned_get_object(
-            bucket_name=minio_bucket, 
-            object_name=object_name,
-            expires=timedelta(days=7)
-        )
-        
         # Reposiciona o ponteiro do arquivo para o início (caso precise usar novamente)
         await file.seek(0)
             
         return {
-            "url": url,
-            "object_name": object_name,
-            "bucket": minio_bucket,
-            "content_type": file.content_type,
-            "size": file_size
+            "url": object_name
         }
     
     except S3Error as e:
