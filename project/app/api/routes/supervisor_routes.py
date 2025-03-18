@@ -73,7 +73,7 @@ async def cadastrar_usuario_supervisor(
     
     # Gerar token de convite e enviar e-mail
     invite_token = generate_invite_token(new_user.email)
-    invite_link = f"sitebonito.com/completar-cadastro?token={invite_token}"
+    invite_link = f"dermalert://register?token={invite_token}"
     background_tasks.add_task(send_invite_email, new_user.email, invite_link)
     
     return {"message": "Convite enviado com sucesso!"}
