@@ -10,8 +10,9 @@ smtp_port = int(os.getenv("SMTP_PORT", 587))
 smtp_username = os.getenv("SMTP_USERNAME")
 smtp_password = os.getenv("SMTP_PASSWORD")
 
-def send_invite_email(email: str, invite_link: str):
+def send_invite_email(email: str, invite_token: str):
     subject = "Convite para completar seu cadastro"
+    invite_link = f"https://arthrok.shop/redirect?token={invite_token}"
     
     body = f"""
     <html>
