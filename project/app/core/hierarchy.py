@@ -15,9 +15,10 @@ def require_role(min_role: RoleEnum):
                 status_code=status.HTTP_403_FORBIDDEN,
                 detail="Usuário não possui nenhuma role definida."
             )
-        user_max_level = max(role.nivel_acesso for role in current_user.roles)
         
-        if user_max_level < min_role:
+        user_min_level = min(role.nivel_acesso for role in current_user.roles)
+        
+        if user_min_level > min_role:
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
                 detail="Usuário não tem permissão para acessar esse recurso."
