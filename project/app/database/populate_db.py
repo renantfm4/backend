@@ -97,9 +97,9 @@ async def populate_db():
         await session.commit()  # Para garantir que as unidades tenham um id
 
         # 2. Criação dos papéis (roles)
-        role_admin = Role(name="Admin", nivel_acesso=3)
+        role_admin = Role(name="Admin", nivel_acesso=1)
         role_supervisor = Role(name="Supervisor", nivel_acesso=2)
-        role_pesquisador = Role(name="Pesquisador", nivel_acesso=1)
+        role_pesquisador = Role(name="Pesquisador", nivel_acesso=3)
         session.add_all([role_admin, role_supervisor, role_pesquisador])
         await session.commit()  # Para garantir que os roles tenham um id
 

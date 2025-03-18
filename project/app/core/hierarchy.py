@@ -4,9 +4,9 @@ from ..database import models
 from ..crud.token import get_current_user
 
 class RoleEnum(IntEnum):
-    PESQUISADOR = 1
+    PESQUISADOR = 3
     SUPERVISOR = 2
-    ADMIN = 3
+    ADMIN = 1
 
 def require_role(min_role: RoleEnum):
     async def role_checker(current_user: models.User = Depends(get_current_user)):
