@@ -15,10 +15,13 @@ def send_invite_email(email: str, invite_link: str):
     
     body = f"""
     <html>
+    <head></head>
     <body>
         <p>Olá,</p>
         <p>Você foi convidado a acessar nossa plataforma. Para concluir seu cadastro, clique no link abaixo:</p>
-        <p><a href="{invite_link}" style="font-size: 16px; color: blue; text-decoration: underline;">Completar Cadastro</a></p>
+        <p><a href="{invite_link}" target="_blank" style="font-size: 16px; color: blue; text-decoration: underline;">
+            Completar Cadastro
+        </a></p>
         <p>Este link expira em 24 horas.</p>
         <p>Atenciosamente,<br>Equipe do Sistema.</p>
     </body>
