@@ -87,7 +87,7 @@ spec:
               name: dermacam-secret
           command: ["/bin/sh", "-c"]
           args:
-            - alembic upgrade head && poetry run uvicorn app.main:app --reload --workers 1 --host 0.0.0.0 --port 8000
+            - poetry run alembic upgrade head && poetry run uvicorn app.main:app --reload --workers 1 --host 0.0.0.0 --port 8000
           resources:
             limits:
               memory: 1Gi
