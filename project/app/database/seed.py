@@ -10,9 +10,9 @@ from app.database.populate_db import populate_db
 FIXED_ROLES = ["Admin", "Supervisor", "Pesquisador"]
 
 ROLE_LEVELS = {
-    "Admin": 3,
+    "Admin": 1,
     "Supervisor": 2,
-    "Pesquisador": 1
+    "Pesquisador": 3
 }
 
 ADMIN_DATA = {
