@@ -1,0 +1,53 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: pre-sync-drop-database
+  namespace: dermacam
+  annotations:
+    argocd.argoproj.io/hook: PreSync
+    argocd.argoproj.io/hook-delete-policy: HookSucceeded
+spec:
+  backoffLimit: 4
+  template:
+    spec:
+      containers:
+      - name: drop-database
+        image: postgres:14-alpine
+        command:
+          - sh
+          - -c
+          - |
+            echo "Dropping all tables from database '$DB_NAME'..."
+            psql -U $DB_USER -h $DB_HOST -p $DB_PORT -d $DB_NAME -c "DO \$\$ DECLARE r RECORD; BEGIN FOR r IN (SELECT tablename FROM pg_tables WHERE schemaname = 'public') LOOP EXECUTE 'DROP TABLE ' || quote_ident(r.tablename) || ' CASCADE;'; END LOOP; END; \$\$;"
+        env:
+        - name: DB_HOST
+          valueFrom:
+            secretKeyRef:
+              name: dermacam-secret
+              key: DB_HOST
+        - name: DB_PORT
+          valueFrom:
+            secretKeyRef:
+              name: dermacam-secret
+              key: DB_PORT
+        - name: DB_USER
+          valueFrom:
+            secretKeyRef:
+              name: dermacam-secret
+              key: DB_USER
+        - name: DB_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: dermacam-secret
+              key: DB_PASSWORD
+        - name: DB_NAME
+          valueFrom:
+            secretKeyRef:
+              name: dermacam-secret
+              key: DB_NAME
+        - name: PGPASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: dermacam-secret
+              key: DB_PASSWORD
+      restartPolicy: Never
