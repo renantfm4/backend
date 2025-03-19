@@ -233,7 +233,7 @@ async def populate_db():
 
             # Cria um TermoConsentimento
             termo = TermoConsentimento(
-                arquivo_url=f"http://exemplo.com/consentimento_{i+1}.pdf"
+                arquivo_path=f"http://exemplo.com/consentimento_{i+1}.pdf"
             )
             session.add(termo)
             await session.commit()
@@ -363,7 +363,7 @@ async def populate_db():
 
                 # Cria uma imagem associada a este registro de lesão
                 imagem = RegistroLesoesImagens(
-                    arquivo_url=f"http://exemplo.com/imagens/lesao_{paciente.id}_{j+1}.jpg",
+                    arquivo_path=f"http://exemplo.com/imagens/lesao_{paciente.id}_{j+1}.jpg",
                     registro_lesoes_id=registro_lesao.id
                 )
                 session.add(imagem)

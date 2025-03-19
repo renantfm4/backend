@@ -124,7 +124,7 @@ class PacienteCreateSchema(BaseModel):
     autoriza_pesquisa: bool
 
 class TermoConsentimentoCreateSchema(BaseModel):
-    arquivo_url: str
+    arquivo_path: str
 
 class FrequenciaAtividadeFisicaEnum(str, Enum):
     diaria = "Diária"

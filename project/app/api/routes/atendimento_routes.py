@@ -152,7 +152,7 @@ async def cadastrar_termo_consentimento(
     arquivo_metadata = await upload_to_minio(file, folder_name="termos-consentimento")
 
     new_termo = models.TermoConsentimento(
-        arquivo_url=arquivo_metadata["url"],
+        arquivo_path=arquivo_metadata["url"],
     )
 
     db.add(new_termo)
@@ -168,7 +168,7 @@ async def cadastrar_termo_consentimento(
         "message": "Termo de Consentimento cadastrado com sucesso!",
         "termo_consentimento": {
             "id": new_termo.id,
-            "arquivo_url": arquivo_metadata["url"]
+            "arquivo_path": arquivo_metadata["url"]
         }
     }
 
@@ -432,7 +432,7 @@ async def cadastrar_lesao(
 
                 # Cria o registro da imagem no banco
                 new_imagem = models.RegistroLesoesImagens(
-                    arquivo_url=arquivo_metadata["url"],  # Just use the URL string, not the entire dict
+                    arquivo_path=arquivo_metadata["url"],  # Just use the URL string, not the entire dict
                     registro_lesoes_id=new_lesao.id
                 )
                 db.add(new_imagem)
@@ -496,7 +496,7 @@ async def listar_lesoes(
             "local_lesao_id": lesao.local_lesao_id,
             "local_lesao_nome": local_lesao_name,
             "descricao_lesao": lesao.descricao_lesao,
-            "imagens": [imagem.arquivo_url for imagem in imagens]
+            "imagens": [imagem.arquivo_path for imagem in imagens]
         })
 
     return lesoes_list
