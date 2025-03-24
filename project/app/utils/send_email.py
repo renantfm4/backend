@@ -32,8 +32,9 @@ def send_invite_email(email: str, invite_token: str):
     print("LINK TOKEN", invite_link)
     send_email(email, subject, body, html=True)
 
-def send_reset_password_email(email: str, reset_link: str):
+def send_reset_password_email(email: str, invite_token: str):
     subject = "Redefinição de Senha"
+    reset_link = f"https://arthrok.shop/redirect?token={invite_token}"
     
     body = f"""
     <html>

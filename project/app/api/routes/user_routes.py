@@ -103,7 +103,7 @@ async def forgot_password(email: str,
     user.password_reset_token_used = False
 
     reset_link = f"sdermalert://register?token={reset_token}"
-    background_tasks.add_task(send_reset_password_email, email, reset_link)
+    background_tasks.add_task(send_reset_password_email, email, reset_token)
 
     await db.commit()
     await db.refresh(user)
