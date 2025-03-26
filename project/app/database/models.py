@@ -28,6 +28,8 @@ class User(AuditMixin, Base):
     # is_active = Column(Boolean, default=False)
     password_reset_token = Column(String(255), nullable=True)
     password_reset_token_used = Column(Boolean, default=False)
+    email_invite_token = Column(String(255), nullable=True)
+    email_invite_token_used = Column(Boolean, default=False)
 
     roles = relationship('Role', secondary=user_roles, back_populates='users')
     unidadeSaude = relationship('UnidadeSaude', secondary=user_unidadeSaude, back_populates='users')
