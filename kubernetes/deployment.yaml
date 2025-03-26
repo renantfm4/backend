@@ -82,6 +82,11 @@ spec:
               secretKeyRef:
                 name: dermacam-secret
                 key: SMTP_PASSWORD
+          - name: BACKEND_URL
+            valueFrom:
+              secretKeyRef:
+                name: dermacam-secret
+                key: BACKEND_URL
           envFrom:
           - secretRef:
               name: dermacam-secret
