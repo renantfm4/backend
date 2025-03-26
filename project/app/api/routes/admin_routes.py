@@ -16,20 +16,73 @@ from ...utils.send_email import send_invite_email
 
 router = APIRouter()
 
+# @router.post("/admin/convidar-usuario", response_model=UserInviteSchema)
+# async def cadastrar_usuario(user_data: UserCreateAdminSchema, 
+#                             background_tasks: BackgroundTasks,
+#                             db: AsyncSession = Depends(get_db),
+#                             current_user: models.User = Depends(require_role(RoleEnum.ADMIN))):
+    
+#     # Verifica se o CPF ou email já existem
+#     stmt = select(models.User).filter((models.User.cpf == user_data.cpf) | (models.User.email == user_data.email))
+#     result = await db.execute(stmt)
+#     existing_user = result.scalars().first()
+    
+#     if existing_user:
+#         raise HTTPException(status_code=400, detail="CPF ou Email já cadastrado")
+
+#     # Verifica se Unidade de Saúde existe
+#     stmt = select(models.UnidadeSaude).filter(models.UnidadeSaude.id == user_data.unidade_saude_id)
+#     result = await db.execute(stmt)
+#     unidade = result.scalars().first()
+    
+#     if not unidade:
+#         raise HTTPException(status_code=404, detail="Unidade de Saúde não encontrada")
+
+#     # Verifica se a Permissão existe
+#     stmt = select(models.Role).filter(models.Role.id == user_data.role_id)
+#     result = await db.execute(stmt)
+#     role = result.scalars().first()
+    
+#     if not role:
+#         raise HTTPException(status_code=404, detail="Permissão não encontrada")
+
+#     # Criando usuário pendente
+#     new_user = models.User(
+#         email=user_data.email,
+#         cpf=user_data.cpf,
+#         fl_ativo=False, 
+#         id_usuario_criacao = current_user.id
+#     )
+    
+#     new_user.roles.append(role)
+#     new_user.unidadeSaude.append(unidade)
+    
+#     db.add(new_user)
+#     await db.commit()
+#     await db.refresh(new_user)
+
+#     # Gerar token de convite
+#     invite_token = generate_invite_token(new_user.email)
+#     invite_link = f"dermalert://register?token={invite_token}"
+#     background_tasks.add_task(send_invite_email, new_user.email, invite_token)
+
+#     return {"message": "Convite enviado com sucesso!"}
+
 @router.post("/admin/convidar-usuario", response_model=UserInviteSchema)
-async def cadastrar_usuario(user_data: UserCreateAdminSchema, 
-                            background_tasks: BackgroundTasks,
-                            db: AsyncSession = Depends(get_db),
-                            current_user: models.User = Depends(require_role(RoleEnum.ADMIN))):
+async def cadastrar_usuario(
+    user_data: UserCreateAdminSchema, 
+    background_tasks: BackgroundTasks,
+    db: AsyncSession = Depends(get_db),
+    current_user: models.User = Depends(require_role(RoleEnum.ADMIN))
+):
     
     # Verifica se o CPF ou email já existem
-    stmt = select(models.User).filter((models.User.cpf == user_data.cpf) | (models.User.email == user_data.email))
+    stmt = select(models.User).filter(
+        (models.User.cpf == user_data.cpf) | (models.User.email == user_data.email)
+    )
     result = await db.execute(stmt)
     existing_user = result.scalars().first()
     
-    if existing_user:
-        raise HTTPException(status_code=400, detail="CPF ou Email já cadastrado")
-
     # Verifica se Unidade de Saúde existe
     stmt = select(models.UnidadeSaude).filter(models.UnidadeSaude.id == user_data.unidade_saude_id)
     result = await db.execute(stmt)
@@ -46,23 +99,59 @@ async def cadastrar_usuario(user_data: UserCreateAdminSchema,
     if not role:
         raise HTTPException(status_code=404, detail="Permissão não encontrada")
 
-    # Criando usuário pendente
+    # Caso de usuário existente
+    if existing_user:
+        # Verifica se o cadastro está incompleto (sem senha definida)
+        if existing_user.senha_hash is None:
+            # Verifica se o token anterior foi usado
+            if existing_user.email_invite_token_used:
+                # Gerar novo token de convite e atualizar no banco
+                invite_token = generate_invite_token(existing_user.email)
+                existing_user.email_invite_token = invite_token
+                existing_user.email_invite_token_used = False
+                existing_user.id_usuario_atualizacao = current_user.id
+                
+                # Enviar novo e-mail de convite
+                invite_link = f"dermalert://register?token={invite_token}"
+                background_tasks.add_task(send_invite_email, existing_user.email, invite_token)
+                
+                await db.commit()
+                return {"message": "Novo convite enviado com sucesso para usuário com cadastro pendente!"}
+            else:
+                invite_token = generate_invite_token(existing_user.email)
+                existing_user.email_invite_token = invite_token
+                existing_user.email_invite_token_used = False
+                existing_user.id_usuario_atualizacao = current_user.id
+                invite_link = f"dermalert://register?token={invite_token}"
+                background_tasks.add_task(send_invite_email, existing_user.email, invite_token)
+                
+                await db.commit()
+                return {"message": "Convite reenviado com sucesso para usuário com cadastro pendente!"}
+        else:
+            # Usuário já completou o cadastro
+            raise HTTPException(status_code=400, detail="CPF ou Email já cadastrado com registro completo")
+
+    # Criando usuário pendente (caso novo)
     new_user = models.User(
         email=user_data.email,
         cpf=user_data.cpf,
-        fl_ativo=False, 
-        id_usuario_criacao = current_user.id
+        fl_ativo=False,
+        id_usuario_criacao=current_user.id
     )
     
     new_user.roles.append(role)
     new_user.unidadeSaude.append(unidade)
     
+    # Gerar token de convite e definir no usuário
+    invite_token = generate_invite_token(new_user.email)
+    new_user.email_invite_token = invite_token
+    new_user.email_invite_token_used = False
+    
     db.add(new_user)
     await db.commit()
     await db.refresh(new_user)
 
-    # Gerar token de convite
-    invite_token = generate_invite_token(new_user.email)
+    # Enviar e-mail de convite
     invite_link = f"dermalert://register?token={invite_token}"
     background_tasks.add_task(send_invite_email, new_user.email, invite_token)
 

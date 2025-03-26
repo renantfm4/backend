@@ -12,7 +12,7 @@ from ...crud.token import get_user_by_cpf, get_user, get_current_user
 from ...core.hierarchy import require_role, RoleEnum
 
 
-from ...core.security import generate_invite_token, verify_invite_token
+from ...core.security import generate_invite_token, verify_invite_token, verify_user_invite_token
 from ...utils.send_email import send_reset_password_email
 from ...core.security import verify_reset_token, generate_reset_token, verify_password
 
@@ -34,8 +34,19 @@ async def completar_cadastro(user_data: CompleteUserSchema, db: AsyncSession = D
 
     if user.fl_ativo:
         raise HTTPException(status_code=400, detail="Usuário já completou o cadastro")
+    
+    is_valid = await verify_user_invite_token(
+        user_data.token, 
+        user.email_invite_token,
+        user.email_invite_token_used
+    )
+    
+    if not is_valid:
+        raise HTTPException(status_code=400, detail="Token inválido ou já utilizado")
+    
 
     user.nome_usuario = user_data.nome_usuario
+    user.email_invite_token_used = True
     user.senha_hash = get_password_hash(user_data.senha)
     user.fl_ativo = True
 
