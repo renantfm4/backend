@@ -14,7 +14,7 @@ backend_url = os.getenv("BACKEND_URL")
 
 def send_invite_email(email: str, invite_token: str):
     subject = "Convite para completar seu cadastro"
-    invite_link = f"{backend_url}/redirect?token={invite_token}"
+    invite_link = f"{backend_url}/redirect?token={invite_token}&source=register"
     
     body = f"""
     <html>
@@ -36,7 +36,7 @@ def send_invite_email(email: str, invite_token: str):
 
 def send_reset_password_email(email: str, invite_token: str):
     subject = "Redefinição de Senha"
-    reset_link = f"{backend_url}/redirect?token={invite_token}"
+    reset_link = f"{backend_url}/redirect?token={invite_token}&source=reset-password"
     
     body = f"""
     <html>
