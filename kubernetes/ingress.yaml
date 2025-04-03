@@ -10,10 +10,10 @@ metadata:
 spec:
   tls:
   - hosts:
-    - arthrok.shop
+    - dermalert.ai
     secretName: tls-dermacam
   rules:
-  - host: arthrok.shop
+  - host: dermalert.ai
     http:
       paths:
         - pathType: Prefix
