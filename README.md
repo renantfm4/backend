@@ -72,4 +72,4 @@ Este comando executa as migrações pendentes, garantindo que o esquema do banco
 
 | Versão | Data | Descrição | Autor | Revisor |
 | :----: | ---- | --------- | ----- | ------- |
-| `1.0`  |10/04/2025| Adiciona descrição, link para gitpage e como rodar aplicação | Izabella Alves |  |
+| `1.0`  |10/04/2025| Adiciona descrição, link para gitpage e como rodar aplicação | Izabella Alves |[ Esther Sena](https://github.com/esmsena)  |
