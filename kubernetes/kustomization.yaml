@@ -1,0 +1,13 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+resources:
+  # - secrets.yaml
+  - deployment.yaml
+  - service.yaml
+  - ingress.yaml
+  - issuer.yaml
+
+images:
+  - name: registry.gitlab.com/lappis-unb/decidimbr/dermalert
+    newTag: latest

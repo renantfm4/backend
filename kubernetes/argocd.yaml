@@ -1,0 +1,26 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: dermacam
+  namespace: argocd
+  annotations:
+    argocd-image-updater.argoproj.io/image-list: dermalert=registry.gitlab.com/lappis-unb/decidimbr/dermalert:latest
+    argocd-image-updater.argoproj.io/dermalert.update-strategy: digest
+spec:
+  project: default
+  source:
+    repoURL: "https://github.com/DermAlert/backend.git"
+    path: "kubernetes"
+    targetRevision: main
+    kustomize: {}
+  destination:
+    server: "https://kubernetes.default.svc"
+    namespace: dermacam
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+      - PrunePropagationPolicy=foreground
+      - PruneLast=true
