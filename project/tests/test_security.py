@@ -8,7 +8,6 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')
 import pytest
 import bcrypt
 import jwt
-from jose.exceptions import JWTError, ExpiredSignatureError
 import jose.jwt as jose_jwt
 jose_jwt.InvalidTokenError = JWTError  
 import app.core.security as security
