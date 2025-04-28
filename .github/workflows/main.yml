@@ -71,7 +71,7 @@ jobs:
         run: |
           docker build -t registry.gitlab.com/lappis-unb/decidimbr/dermalert:latest .
 
-      - name: Push Docker image
-        working-directory: project
-        run: |
-          docker push registry.gitlab.com/lappis-unb/decidimbr/dermalert:latest
+#      - name: Push Docker image
+#        working-directory: project
+#        run: |
+#          docker push registry.gitlab.com/lappis-unb/decidimbr/dermalert:latest
