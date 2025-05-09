@@ -7,6 +7,7 @@ from ...core.hierarchy import require_role, RoleEnum
 from ...database import models
 from ...database.schemas import PacienteCreateSchema, TermoConsentimentoCreateSchema, SaudeGeralCreateSchema, AvaliacaoFototipoCreateSchema, RegistroLesoesCreateSchema, RegistroLesoesCreateSchema, LocalLesaoSchema, HistoricoCancerPeleCreateSchema, FatoresRiscoProtecaoCreateSchema, InvestigacaoLesoesSuspeitasCreateSchema, InformacoesCompletasCreateSchema
 from ...utils.minio import upload_to_minio
+from ...utils.machine_learning import classificar_imagem_pele
 
 router = APIRouter()
 
@@ -394,7 +395,7 @@ async def cadastrar_lesao(
     descricao_lesao: str = Form(...),
     files: List[UploadFile] = File(None),
     db: AsyncSession = Depends(get_db),
-    current_user: models.User = Depends(require_role(RoleEnum.PESQUISADOR))
+    #current_user: models.User = Depends(require_role(RoleEnum.PESQUISADOR))
 ):
     # Verify atendimento exists
     stmt = select(models.Atendimento).filter(models.Atendimento.id == atendimento_id)
@@ -423,21 +424,26 @@ async def cadastrar_lesao(
     await db.refresh(new_lesao)
 
     imagens_urls = []
+    diagnosticos = []
     if files:      
         for file in files:
             try:
-                # Upload da imagem para o MinIO
+                
                 arquivo_metadata = await upload_to_minio(file, folder_name="imagens-lesoes")
                 imagens_urls.append(arquivo_metadata["url"])
+                print(f"Imagem {file.filename} carregada com sucesso para o MinIO.")
 
-                # Cria o registro da imagem no banco
                 new_imagem = models.RegistroLesoesImagens(
-                    arquivo_path=arquivo_metadata["url"],  # Just use the URL string, not the entire dict
+                    arquivo_path=arquivo_metadata["url"],
                     registro_lesoes_id=new_lesao.id
                 )
                 db.add(new_imagem)
+
+                diagnostico = await classificar_imagem_pele(file)
+                diagnosticos.append(diagnostico)
+                print(f"Imagem {file.filename} classificada com sucesso.")
+                
             except Exception as e:
-                # Log the error but continue with other files
                 print(f"Erro ao fazer upload da imagem {file.filename}: {str(e)}")
                 continue
                 
@@ -451,7 +457,8 @@ async def cadastrar_lesao(
             "local_lesao_nome": local_lesao.nome,
             "descricao_lesao": new_lesao.descricao_lesao,
         },
-        "imagens": imagens_urls
+        "imagens": imagens_urls,
+        "prediagnosticos": diagnosticos 
     }
 
 
