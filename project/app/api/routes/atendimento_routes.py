@@ -395,7 +395,7 @@ async def cadastrar_lesao(
     descricao_lesao: str = Form(...),
     files: List[UploadFile] = File(None),
     db: AsyncSession = Depends(get_db),
-    #current_user: models.User = Depends(require_role(RoleEnum.PESQUISADOR))
+    current_user: models.User = Depends(require_role(RoleEnum.PESQUISADOR))
 ):
     # Verify atendimento exists
     stmt = select(models.Atendimento).filter(models.Atendimento.id == atendimento_id)
