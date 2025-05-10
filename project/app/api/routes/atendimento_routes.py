@@ -7,6 +7,7 @@ from ...core.hierarchy import require_role, RoleEnum
 from ...database import models
 from ...database.schemas import PacienteCreateSchema, TermoConsentimentoCreateSchema, SaudeGeralCreateSchema, AvaliacaoFototipoCreateSchema, RegistroLesoesCreateSchema, RegistroLesoesCreateSchema, LocalLesaoSchema, HistoricoCancerPeleCreateSchema, FatoresRiscoProtecaoCreateSchema, InvestigacaoLesoesSuspeitasCreateSchema, InformacoesCompletasCreateSchema
 from ...utils.minio import upload_to_minio
+from ...utils.detectar_lesao import classificar_tipo_lesao
 
 router = APIRouter()
 
@@ -423,6 +424,8 @@ async def cadastrar_lesao(
     await db.refresh(new_lesao)
 
     imagens_urls = []
+    diagnostico = []
+
     if files:      
         for file in files:
             try:
@@ -436,6 +439,10 @@ async def cadastrar_lesao(
                     registro_lesoes_id=new_lesao.id
                 )
                 db.add(new_imagem)
+
+                tipo = await classificar_tipo_lesao(file)
+                diagnostico.append(tipo)
+
             except Exception as e:
                 # Log the error but continue with other files
                 print(f"Erro ao fazer upload da imagem {file.filename}: {str(e)}")
@@ -451,9 +458,9 @@ async def cadastrar_lesao(
             "local_lesao_nome": local_lesao.nome,
             "descricao_lesao": new_lesao.descricao_lesao,
         },
-        "imagens": imagens_urls
+        "imagens": imagens_urls,
+        "tipo": diagnostico
     }
-
 
 @router.get("/listar-lesoes/{atendimento_id}")
 async def listar_lesoes(
