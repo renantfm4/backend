@@ -17,10 +17,9 @@ transform = transforms.Compose([
     transforms.ToTensor()
 ])
 
-async def classificar_tipo_lesao(file: UploadFile) -> str:
+async def classificar_tipo_lesao(file_content: bytes) -> str:
     try:
-        conteudo = await file.read()
-        imagem = Image.open(io.BytesIO(conteudo)).convert("RGB")
+        imagem = Image.open(io.BytesIO(file_content)).convert("RGB")
         input_tensor = transform(imagem).unsqueeze(0)
 
         with torch.no_grad():

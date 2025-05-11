@@ -396,7 +396,7 @@ async def cadastrar_lesao(
     descricao_lesao: str = Form(...),
     files: List[UploadFile] = File(None),
     db: AsyncSession = Depends(get_db),
-    current_user: models.User = Depends(require_role(RoleEnum.PESQUISADOR))
+    #current_user: models.User = Depends(require_role(RoleEnum.PESQUISADOR))
 ):
     # Verify atendimento exists
     stmt = select(models.Atendimento).filter(models.Atendimento.id == atendimento_id)
@@ -440,14 +440,18 @@ async def cadastrar_lesao(
                     registro_lesoes_id=new_lesao.id
                 )
                 db.add(new_imagem)
-
-                tipo = await classificar_tipo_lesao(file)
-                tipos.append(tipo)
-
-                diagnostico = await classificar_imagem_pele(file)
-                diagnosticos.append(diagnostico)
-                print(f"Imagem {file.filename} classificada com sucesso.")
                 
+                file_content = await file.read()  # Lê o arquivo em memória
+
+                # Classificação da imagem
+                diagnostico = await classificar_imagem_pele(file_content)  # Passa o conteúdo lido para a função
+                diagnosticos.append(diagnostico)
+                print(f"Imagem {file.filename} classificada com sucesso como {diagnostico}.")
+
+                # Classificação do tipo de lesão
+                tipo = await classificar_tipo_lesao(file_content)  # Passa o conteúdo lido para a função
+                tipos.append(tipo)
+                print(f"Imagem {file.filename} classificada com sucesso como tipo {tipo}.")
             except Exception as e:
                 print(f"Erro ao fazer upload da imagem {file.filename}: {str(e)}")
                 continue

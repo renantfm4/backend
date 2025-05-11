@@ -7,10 +7,9 @@ from fastapi import UploadFile
 processor = AutoImageProcessor.from_pretrained("Anwarkh1/Skin_Cancer-Image_Classification")
 model = AutoModelForImageClassification.from_pretrained("Anwarkh1/Skin_Cancer-Image_Classification")
 
-async def classificar_imagem_pele(file: UploadFile) -> str:
+async def classificar_imagem_pele(file_content: bytes) -> str:
     try:
-        conteudo = await file.read()
-        imagem = Image.open(io.BytesIO(conteudo)).convert("RGB")
+        imagem = Image.open(io.BytesIO(file_content)).convert("RGB")
         imagem = imagem.resize((224, 224))
         inputs = processor(images=imagem, return_tensors="pt", padding=True)
         
