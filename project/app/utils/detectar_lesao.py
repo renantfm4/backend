@@ -7,7 +7,7 @@ import io
 # Carrega o modelo treinado no do arquivo .pt
 model = models.resnet18()
 model.fc = torch.nn.Linear(model.fc.in_features, 2)
-model.load_state_dict(torch.load("./data/skin_cancer_resnet18_version1.pt", map_location='cpu'))
+model.load_state_dict(torch.load("./app/utils/data/skin_cancer_resnet18_version1.pt", map_location='cpu'))
 model.eval()
 
 # transformação da imagem
