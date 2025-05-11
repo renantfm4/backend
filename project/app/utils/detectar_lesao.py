@@ -1,11 +1,14 @@
 import torch
-from torchvision import transforms
+from torchvision import transforms, models
 from PIL import Image
 from fastapi import UploadFile
 import io
 
 # Carrega o modelo completo salvo com torch.save(model)
-model = torch.load("app/utils/data/skin_cancer_resnet18_version1.pt", map_location='cpu')
+model = models.resnet18(weights=None)
+model.fc = torch.nn.Linear(model.fc.in_features, 2)
+
+model.load_state_dict(torch.load("app/utils/data/skin_cancer_resnet18_version1.pt", map_location='cpu'))
 model.eval()
 
 # transformação da imagem
