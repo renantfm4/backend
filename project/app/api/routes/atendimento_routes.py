@@ -396,7 +396,7 @@ async def cadastrar_lesao(
     descricao_lesao: str = Form(...),
     files: List[UploadFile] = File(None),
     db: AsyncSession = Depends(get_db),
-    #current_user: models.User = Depends(require_role(RoleEnum.PESQUISADOR))
+    current_user: models.User = Depends(require_role(RoleEnum.PESQUISADOR))
 ):
     # Verify atendimento exists
     stmt = select(models.Atendimento).filter(models.Atendimento.id == atendimento_id)
@@ -427,6 +427,7 @@ async def cadastrar_lesao(
     imagens_urls = []
     tipos = []
     diagnosticos = []
+    descricoes_lesao = []
     if files:      
         for file in files:
             try:
@@ -444,12 +445,13 @@ async def cadastrar_lesao(
                 file_content = await file.read()  # Lê o arquivo em memória
 
                 # Classificação da imagem
-                diagnostico = await classificar_imagem_pele(file_content)  # Passa o conteúdo lido para a função
-                diagnosticos.append(diagnostico)
+                diagnostico = await classificar_imagem_pele(file_content)
+                diagnosticos.append(diagnostico["nome_traduzido"])
+                descricoes_lesao.append(diagnostico["descricao"])
                 print(f"Imagem {file.filename} classificada com sucesso como {diagnostico}.")
 
                 # Classificação do tipo de lesão
-                tipo = await classificar_tipo_lesao(file_content)  # Passa o conteúdo lido para a função
+                tipo = await classificar_tipo_lesao(file_content)
                 tipos.append(tipo)
                 print(f"Imagem {file.filename} classificada com sucesso como tipo {tipo}.")
             except Exception as e:
@@ -467,8 +469,9 @@ async def cadastrar_lesao(
             "descricao_lesao": new_lesao.descricao_lesao,
         },
         "imagens": imagens_urls,
-        "tipo": tipos,
-        "prediagnosticos": diagnosticos 
+        "tipos": tipos,
+        "prediagnosticos": diagnosticos, 
+        "descricoes-lesao": descricoes_lesao
     }
 
 @router.get("/listar-lesoes/{atendimento_id}")
