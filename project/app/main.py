@@ -4,6 +4,7 @@ from app.database import models, database
 from app.database.seed import seed_data, populate_data
 from contextlib import asynccontextmanager
 from fastapi.middleware.cors import CORSMiddleware
+#from app.api.routes import avaliacao_imagem
 
 
 # from app.database.populate_db import populate_db
@@ -48,6 +49,6 @@ app.include_router(supervisor_routes.router, tags=["supervisor"])
 app.include_router(unidade_saude_routes.router, tags=["unidade_saude"])
 app.include_router(atendimento_routes.router, tags=["atendimento"])
 app.include_router(redirect_routes.router, tags=["redirect"])
-
+#app.include_router(avaliacao_imagem.router)
 
 

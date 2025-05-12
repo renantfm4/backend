@@ -15,6 +15,7 @@ bcrypt = "4.2.1"
 python-jose = "3.3.0"
 pydantic = { version = "2.10.0", extras = ["email"] }
 passlib = "1.7.4"
+gradio_client = "1.10.0"
 python-multipart = "0.0.20"
 minio = "7.2.15"
 transformers = "4.36.0"

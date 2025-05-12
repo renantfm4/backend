@@ -8,3 +8,4 @@ python-jose==3.3.0
 bcrypt==4.0.1   
 PyJWT==2.5.0
 passlib[bcrypt]==1.7.4
+gradio_client ==1.10.0
