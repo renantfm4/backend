@@ -1,0 +1,30 @@
+{
+  "benign_keratosis-like_lesions": {
+    "nome": "Lesões tipo ceratose benigna",
+    "descricao": "Lesões de pele geralmente não cancerígenas, como a ceratose seborreica e lentigo solar, comuns em pessoas mais velhas."
+  },
+  "basal_cell_carcinoma": {
+    "nome": "Carcinoma basocelular",
+    "descricao": "O tipo mais comum de câncer de pele, geralmente de crescimento lento e pouco provável de se espalhar, mas pode causar danos locais."
+  },
+  "actinic_keratoses": {
+    "nome": "Ceratose actínica",
+    "descricao": "Lesões pré-cancerosas causadas pela exposição ao sol, que podem evoluir para carcinoma espinocelular se não forem tratadas."
+  },
+  "vascular_lesions": {
+    "nome": "Lesões vasculares",
+    "descricao": "Alterações nos vasos sanguíneos da pele, como hemangiomas e pontos rubis, geralmente benignas."
+  },
+  "melanocytic_Nevi": {
+    "nome": "Nevo melanocítico",
+    "descricao": "Popularmente conhecidos como pintas, são aglomerados de células produtoras de pigmento; normalmente benignos."
+  },
+  "melanoma": {
+    "nome": "Melanoma",
+    "descricao": "Um tipo agressivo de câncer de pele que se origina nos melanócitos; pode se espalhar rapidamente se não tratado precocemente."
+  },
+  "dermatofibroma": {
+    "nome": "Dermatofibroma",
+    "descricao": "Lesão benigna firme da pele, normalmente causada por traumas menores como picadas de inseto ou cortes."
+  }
+}
