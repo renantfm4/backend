@@ -9,6 +9,7 @@ from ...database.schemas import PacienteCreateSchema, TermoConsentimentoCreateSc
 from ...utils.minio import upload_to_minio
 from ...utils.detectar_lesao import classificar_tipo_lesao
 from ...utils.machine_learning import classificar_imagem_pele
+from ...utils.qualidade_imagem import avaliar_qualidade_imagem
 
 router = APIRouter()
 
@@ -398,23 +399,23 @@ async def cadastrar_lesao(
     db: AsyncSession = Depends(get_db),
     current_user: models.User = Depends(require_role(RoleEnum.PESQUISADOR))
 ):
-    # Verify atendimento exists
+    # Verifica se atendimento existe
     stmt = select(models.Atendimento).filter(models.Atendimento.id == atendimento_id)
     result = await db.execute(stmt)
     atendimento = result.scalars().first()
 
     if not atendimento:
         raise HTTPException(status_code=404, detail="Atendimento não encontrado")
-    
-    # Verify local_lesao_id exists
+
+    # Verifica se local_lesao existe
     stmt_local = select(models.LocalLesao).filter(models.LocalLesao.id == local_lesao_id)
     result_local = await db.execute(stmt_local)
     local_lesao = result_local.scalar_one_or_none()
-    
+
     if not local_lesao:
         raise HTTPException(status_code=404, detail="Local de lesão não encontrado")
 
-    # Create new lesion with foreign key to LocalLesao
+    # Cria registro da lesão
     new_lesao = models.RegistroLesoes(
         local_lesao_id=local_lesao_id,
         descricao_lesao=descricao_lesao,
@@ -428,10 +429,23 @@ async def cadastrar_lesao(
     tipos = []
     diagnosticos = []
     descricoes_lesao = []
-    if files:      
+
+    if files:
+        for file in files:
+            file_content = await file.read()
+            qualidade = avaliar_qualidade_imagem(file_content)
+            
+            if qualidade["qualidade"] != "boa":
+                erro_msg = qualidade.get("erro", "Qualidade inferior a boa.")
+                raise HTTPException(
+                    status_code=400,
+                    detail=f"A imagem '{file.filename}' foi rejeitada: {erro_msg} (score: {qualidade.get('score')}). Envie apenas imagens com qualidade boa."
+                )
+            
+            file.file.seek(0)
+
         for file in files:
             try:
-                
                 arquivo_metadata = await upload_to_minio(file, folder_name="imagens-lesoes")
                 imagens_urls.append(arquivo_metadata["url"])
                 print(f"Imagem {file.filename} carregada com sucesso para o MinIO.")
@@ -441,23 +455,21 @@ async def cadastrar_lesao(
                     registro_lesoes_id=new_lesao.id
                 )
                 db.add(new_imagem)
-                
-                file_content = await file.read()  # Lê o arquivo em memória
 
-                # Classificação da imagem
+                file_content = await file.read()
+
                 diagnostico = await classificar_imagem_pele(file_content)
                 diagnosticos.append(diagnostico["nome_traduzido"])
                 descricoes_lesao.append(diagnostico["descricao"])
-                print(f"Imagem {file.filename} classificada com sucesso como {diagnostico}.")
+                print(f"Imagem {file.filename} classificada como {diagnostico}.")
 
-                # Classificação do tipo de lesão
                 tipo = await classificar_tipo_lesao(file_content)
                 tipos.append(tipo)
-                print(f"Imagem {file.filename} classificada com sucesso como tipo {tipo}.")
+                print(f"Imagem {file.filename} classificada como tipo {tipo}.")
             except Exception as e:
-                print(f"Erro ao fazer upload da imagem {file.filename}: {str(e)}")
+                print(f"Erro ao processar imagem {file.filename}: {str(e)}")
                 continue
-                
+
         await db.commit()
 
     return {
@@ -470,9 +482,9 @@ async def cadastrar_lesao(
         },
         "imagens": imagens_urls,
         "tipos": tipos,
-        "prediagnosticos": diagnosticos, 
+        "prediagnosticos": diagnosticos,
         "descricoes-lesao": descricoes_lesao
-    }
+        }
 
 @router.get("/listar-lesoes/{atendimento_id}")
 async def listar_lesoes(
