@@ -5,10 +5,12 @@ from datetime import date
 
 from enum import Enum
 
+
 class UserBase(BaseModel):
     nome_usuario: str
     email: EmailStr
     cpf: str
+
 
 class UserCreate(UserBase):
     senha: str
@@ -20,22 +22,27 @@ class UserUpdate(BaseModel):
     cpf: Optional[str] = None
     senha: Optional[str] = None
 
+
 class AdminUserEdit(BaseModel):
     cpf: Optional[str] = None
     unidade_saude: Optional[int] = None
     role_id: Optional[int] = None
     fl_ativo: Optional[bool] = None
 
+
 class Token(BaseModel):
     access_token: str
     refresh_token: str
     token_type: str = "bearer"
 
+
 class TokenRefresh(BaseModel):
     refresh_token: str
 
+
 class UserInviteSchema(BaseModel):
     message: str
+
 
 class UserCreateAdminSchema(BaseModel):
     cpf: str
@@ -43,15 +50,18 @@ class UserCreateAdminSchema(BaseModel):
     unidade_saude_id: int
     role_id: int
 
+
 class CompleteUserSchema(BaseModel):
     token: str
     nome_usuario: str
     senha: str
 
+
 class UserCreateSupervisorSchema(BaseModel):
     email: EmailStr
     cpf: str
     role_id: int
+
 
 class SupervisorUserEdit(BaseModel):
     cpf: Optional[str] = None
@@ -67,6 +77,7 @@ class RoleOut(BaseModel):
     class Config:
         orm_mode = True
 
+
 class UnidadeSaudeOut(BaseModel):
     id: int
     nome_unidade_saude: str
@@ -77,6 +88,7 @@ class UnidadeSaudeOut(BaseModel):
 
     class Config:
         orm_mode = True
+
 
 class UserOut(BaseModel):
     id: int
@@ -90,12 +102,14 @@ class UserOut(BaseModel):
     class Config:
         orm_mode = True
 
+
 class UnidadeSaudeCreateSchema(BaseModel):
     nome_unidade_saude: str
     nome_localizacao: str
     codigo_unidade_saude: str
     cidade_unidade_saude: str
     fl_ativo: bool
+
 
 class UnidadeSaudeUpdateSchema(BaseModel):
     nome_unidade_saude: Optional[str] = None
@@ -104,12 +118,14 @@ class UnidadeSaudeUpdateSchema(BaseModel):
     cidade_unidade_saude: Optional[str] = None
     fl_ativo: Optional[bool] = None
 
+
 class sexoEnum(str, Enum):
     masculino = "M"
     feminino = "F"
     nao_binario = "NB"
     nao_respondeu = "NR"
     outro = "O"
+
 
 class PacienteCreateSchema(BaseModel):
     nome_paciente: str
@@ -123,14 +139,17 @@ class PacienteCreateSchema(BaseModel):
     email_paciente: str
     autoriza_pesquisa: bool
 
+
 class TermoConsentimentoCreateSchema(BaseModel):
     arquivo_path: str
+
 
 class FrequenciaAtividadeFisicaEnum(str, Enum):
     diaria = "Diária"
     frequente = "Frequente"
     moderada = "Moderada"
     ocasional = "Ocasional"
+
 
 class SaudeGeralCreateSchema(BaseModel):
     doencas_cronicas: bool = False
@@ -149,6 +168,7 @@ class SaudeGeralCreateSchema(BaseModel):
     pratica_atividade_fisica: bool = False
     frequencia_atividade_fisica: Optional[FrequenciaAtividadeFisicaEnum] = None
 
+
 class AvaliacaoFototipoCreateSchema(BaseModel):
     cor_pele: int
     cor_olhos: int
@@ -166,11 +186,13 @@ class GrauParentescoEnum(str, Enum):
     irmao = "Irmão/Irmã"
     outro = "Outro"
 
+
 class TipoCancerFamiliarEnum(str, Enum):
     melanoma = "Melanoma"
     carcinoma_basocelular = "Carcinoma Basocelular"
     carcinoma_espinocelular = "Carcinoma Espinocelular"
     outro = "Outro"
+
 
 class TipoCancerPessoalEnum(str, Enum):
     melanoma = "Melanoma"
@@ -178,21 +200,25 @@ class TipoCancerPessoalEnum(str, Enum):
     carcinoma_espinocelular = "Carcinoma Espinocelular"
     outro = "Outro"
 
+
 class TipoTratamentoEnum(str, Enum):
     cirurgia = "Cirurgia"
     crioterapia = "Crioterapia"
     radioterapia = "Radioterapia"
     outro = "Outro"
 
+
 class FrequenciaExposicaoEnum(str, Enum):
     diariamente = "Diariamente"
     algumas_vezes_por_semana = "Algumas vezes por semana"
     ocasionalmente = "Ocasionalmente"
 
+
 class QuantidadeQueimadurasEnum(str, Enum):
     um_dois = "1-2"
     tres_cinco = "3-5"
     mais_de_cinco = "Mais de 5"
+
 
 class FatorProtecaoEnum(str, Enum):
     quinze = "15"
@@ -201,16 +227,19 @@ class FatorProtecaoEnum(str, Enum):
     setenta = "70"
     cem_ou_mais = "100 ou mais"
 
+
 class FrequenciaCheckupsEnum(str, Enum):
     anualmente = "Anualmente"
     a_cada_seis_meses = "A cada 6 meses"
     outro = "Outro"
+
 
 class TempoAlteracoesEnum(str, Enum):
     menos_de_um_mes = "Menos de 1 mês"
     um_tres_meses = "1-3 meses"
     tres_seis_meses = "3-6 meses"
     mais_de_seis_meses = "Mais de 6 meses"
+
 
 class HistoricoCancerPeleCreateSchema(BaseModel):
     historico_familiar: bool = False
@@ -224,6 +253,7 @@ class HistoricoCancerPeleCreateSchema(BaseModel):
     tratamento_lesoes: bool = False
     tipo_tratamento: Optional[TipoTratamentoEnum] = None
     tipo_tratamento_outro: Optional[str] = None
+
 
 class FatoresRiscoProtecaoCreateSchema(BaseModel):
     exposicao_solar_prolongada: bool = False
@@ -239,6 +269,7 @@ class FatoresRiscoProtecaoCreateSchema(BaseModel):
     frequencia_checkups_outro: Optional[str] = None
     participacao_campanhas_prevencao: bool = False
 
+
 class InvestigacaoLesoesSuspeitasCreateSchema(BaseModel):
     mudanca_pintas_manchas: bool = False
     sintomas_lesoes: bool = False
@@ -247,13 +278,15 @@ class InvestigacaoLesoesSuspeitasCreateSchema(BaseModel):
     consulta_medica: bool = False
     diagnostico_lesoes: Optional[str] = None
 
+
 class InformacoesCompletasCreateSchema(BaseModel):
     saude_geral: Optional[SaudeGeralCreateSchema] = None
     avaliacao_fototipo: Optional[AvaliacaoFototipoCreateSchema] = None
     historico_cancer_pele: Optional[HistoricoCancerPeleCreateSchema] = None
     fatores_risco_protecao: Optional[FatoresRiscoProtecaoCreateSchema] = None
-    investigacao_lesoes_suspeitas: Optional[InvestigacaoLesoesSuspeitasCreateSchema] = None
-
+    investigacao_lesoes_suspeitas: Optional[InvestigacaoLesoesSuspeitasCreateSchema] = (
+        None
+    )
 
 
 # class RegistroLesoesCreateSchema(BaseModel):
@@ -263,18 +296,15 @@ class InformacoesCompletasCreateSchema(BaseModel):
 #     class Config:
 #         orm_mode = True
 
+
 class RegistroLesoesCreateSchema(BaseModel):
     local_lesao: str
     descricao_lesao: str
 
     @classmethod
-    def as_form(
-        cls,
-        local_lesao: str = Form(...),
-        descricao_lesao: str = Form(...)
-    ):
+    def as_form(cls, local_lesao: str = Form(...), descricao_lesao: str = Form(...)):
         return cls(local_lesao=local_lesao, descricao_lesao=descricao_lesao)
-    
+
 
 class LocalLesaoSchema(BaseModel):
     id: int
@@ -290,7 +320,7 @@ class UserResponseSchema(BaseModel):
     email: str
     cpf: str
     fl_ativo: bool
-    nivel_acesso: Optional[int] = None 
+    nivel_acesso: Optional[int] = None
 
     class Config:
         orm_mode = True

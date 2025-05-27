@@ -2,13 +2,15 @@ import bcrypt
 
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:
-    return bcrypt.checkpw(plain_password.encode('utf-8'), hashed_password.encode('utf-8'))
+    return bcrypt.checkpw(
+        plain_password.encode("utf-8"), hashed_password.encode("utf-8")
+    )
+
 
 def get_password_hash(password: str) -> str:
     # Gera o hash e decodifica para string (UTF-8)
-    hashed = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt())
-    return hashed.decode('utf-8')
-
+    hashed = bcrypt.hashpw(password.encode("utf-8"), bcrypt.gensalt())
+    return hashed.decode("utf-8")
 
 
 from jose import JWTError, jwt
@@ -17,11 +19,18 @@ from ..core.config import SECRET_KEY, ALGORITHM
 import uuid
 import secrets
 
+
 def generate_invite_token(email: str):
     expire = datetime.now() + timedelta(days=1)  # Token válido por 1 dia
     token_id = secrets.token_urlsafe(32)
-    payload = {"sub": email, "exp": expire, "jti": token_id, "iat": datetime.timestamp(datetime.now())}
+    payload = {
+        "sub": email,
+        "exp": expire,
+        "jti": token_id,
+        "iat": datetime.timestamp(datetime.now()),
+    }
     return jwt.encode(payload, SECRET_KEY, algorithm=ALGORITHM)
+
 
 def verify_invite_token(token: str):
     try:
@@ -31,8 +40,11 @@ def verify_invite_token(token: str):
         return None
     except jwt.InvalidTokenError:
         return None
-    
-async def verify_user_invite_token(token: str, db_token: str, token_used: bool = False) -> bool:
+
+
+async def verify_user_invite_token(
+    token: str, db_token: str, token_used: bool = False
+) -> bool:
     if token_used:
         return False
     if not db_token:
@@ -50,6 +62,7 @@ def generate_reset_token(email: str):
     expire = datetime.now() + timedelta(hours=1)  # Token válido por 1 hora
     payload = {"sub": email, "exp": expire}
     return jwt.encode(payload, SECRET_KEY, algorithm=ALGORITHM)
+
 
 def verify_reset_token(token: str):
     try:

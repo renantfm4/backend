@@ -1,7 +1,7 @@
 import asyncio
 from sqlalchemy import select
 from app.database.models import Role, User
-from app.database.database import SessionLocal 
+from app.database.database import SessionLocal
 from app.core.security import get_password_hash
 import os
 
@@ -9,11 +9,7 @@ from app.database.populate_db import populate_db
 
 FIXED_ROLES = ["Admin", "Supervisor", "Pesquisador"]
 
-ROLE_LEVELS = {
-    "Admin": 1,
-    "Supervisor": 2,
-    "Pesquisador": 3
-}
+ROLE_LEVELS = {"Admin": 1, "Supervisor": 2, "Pesquisador": 3}
 
 ADMIN_DATA = {
     "nome_usuario": os.getenv("ADMIN_NOME_INICIAL"),
@@ -22,6 +18,7 @@ ADMIN_DATA = {
     "senha": os.getenv("ADMIN_SENHA_INICIAL"),
     "fl_ativo": True,
 }
+
 
 async def seed_data():
     async with SessionLocal() as session:
@@ -37,7 +34,9 @@ async def seed_data():
         else:
             print("Roles já existem.")
 
-        result = await session.execute(select(User).filter(User.email == ADMIN_DATA["email"]))
+        result = await session.execute(
+            select(User).filter(User.email == ADMIN_DATA["email"])
+        )
         admin_existente = result.scalars().first()
 
         if not admin_existente:
@@ -58,8 +57,9 @@ async def seed_data():
         else:
             print("Usuário admin já existe.")
 
+
 async def populate_data():
-    # if database id empty, populate with seed 
+    # if database id empty, populate with seed
     async with SessionLocal() as session:
         result = await session.execute(select(User))
         users = result.scalars().all()

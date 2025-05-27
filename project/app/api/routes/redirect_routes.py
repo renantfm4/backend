@@ -4,11 +4,12 @@ from fastapi.responses import HTMLResponse
 
 router = APIRouter()
 
+
 @router.get("/redirect", response_class=HTMLResponse)
 async def redirect_to_app(token: str, source: str):
 
     app_link = f"dermalert://{source}?token={token}"
-    
+
     html_content = f"""
     <!DOCTYPE html>
     <html>
@@ -36,5 +37,5 @@ async def redirect_to_app(token: str, source: str):
         </body>
     </html>
     """
-    
+
     return html_content
