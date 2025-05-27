@@ -2,7 +2,7 @@ import random
 from datetime import date, timedelta
 from sqlalchemy.orm import Session
 from sqlalchemy.future import select
-from app.database.database import SessionLocal 
+from app.database.database import SessionLocal
 from ..core.security import get_password_hash
 
 # Importe os modelos definidos (User, Role, UnidadeSaude, Paciente, Atendimento, TermoConsentimento,
@@ -27,6 +27,7 @@ from .models import (
 # Lista de possíveis locais para as lesões
 LESOES_LOCAIS = ["Face", "Braço", "Perna", "Tronco", "Mão", "Pé"]
 
+
 # Função auxiliar para gerar datas de nascimento aleatórias (entre 1950 e 2010)
 def random_birthdate():
     start_date = date(1950, 1, 1)
@@ -34,6 +35,7 @@ def random_birthdate():
     delta = end_date - start_date
     random_days = random.randrange(delta.days)
     return start_date + timedelta(days=random_days)
+
 
 # Função auxiliar para gerar valores válidos para AvaliacaoFototipo
 def random_avaliacao_fototipo():
@@ -46,6 +48,7 @@ def random_avaliacao_fototipo():
         bronzeamento=random.choice([0, 2, 4, 6]),
         sensibilidade_solar=random.choice([0, 1, 2, 3, 4]),
     )
+
 
 # Função auxiliar para gerar um registro de saúde geral
 def random_saude_geral():
@@ -64,7 +67,9 @@ def random_saude_geral():
         ciruturgias_dermatologicas=random.choice([True, False]),
         tipo_procedimento="Peeling químico" if random.choice([True, False]) else None,
         pratica_atividade_fisica=random.choice([True, False]),
-        frequencia_atividade_fisica=random.choice(["Diária", "Frequente", "Moderada", "Ocasional"]),
+        frequencia_atividade_fisica=random.choice(
+            ["Diária", "Frequente", "Moderada", "Ocasional"]
+        ),
     )
 
 
@@ -77,21 +82,21 @@ async def populate_db():
             nome_localizacao="Rua das Flores, 123 - Centro, São Paulo",
             codigo_unidade_saude="USC001",
             cidade_unidade_saude="São Paulo",
-            fl_ativo=True
+            fl_ativo=True,
         )
         unidade2 = UnidadeSaude(
             nome_unidade_saude="Posto de Saúde do Norte",
             nome_localizacao="Avenida Brasil, 456 - Bairro Alto, Rio de Janeiro",
             codigo_unidade_saude="PSN002",
             cidade_unidade_saude="Rio de Janeiro",
-            fl_ativo=True
+            fl_ativo=True,
         )
         unidade3 = UnidadeSaude(
             nome_unidade_saude="Clínica Vida",
             nome_localizacao="Travessa das Acácias, 789 - Zona Sul, Belo Horizonte",
             codigo_unidade_saude="CV003",
             cidade_unidade_saude="Belo Horizonte",
-            fl_ativo=True
+            fl_ativo=True,
         )
         session.add_all([unidade1, unidade2, unidade3])
         await session.commit()  # Para garantir que as unidades tenham um id
@@ -112,7 +117,7 @@ async def populate_db():
             senha_hash=get_password_hash("admin123"),
             fl_ativo=True,
             roles=[role_admin],
-            unidadeSaude=[unidade1]
+            unidadeSaude=[unidade1],
         )
         usuario2 = User(
             nome_usuario="supervisor_rj",
@@ -121,7 +126,7 @@ async def populate_db():
             senha_hash=get_password_hash("supervisor123"),
             fl_ativo=True,
             roles=[role_supervisor],
-            unidadeSaude=[unidade2]
+            unidadeSaude=[unidade2],
         )
         usuario3 = User(
             nome_usuario="pesq_sp",
@@ -130,7 +135,7 @@ async def populate_db():
             senha_hash=get_password_hash("pesquisador123"),
             fl_ativo=True,
             roles=[role_pesquisador],
-            unidadeSaude=[unidade1]
+            unidadeSaude=[unidade1],
         )
         usuario4 = User(
             nome_usuario="pesq_bh",
@@ -139,7 +144,7 @@ async def populate_db():
             senha_hash=get_password_hash("pesquisador123"),
             fl_ativo=True,
             roles=[role_pesquisador],
-            unidadeSaude=[unidade3]
+            unidadeSaude=[unidade3],
         )
         usuario5 = User(
             nome_usuario="supervisor_bh",
@@ -148,7 +153,7 @@ async def populate_db():
             senha_hash=get_password_hash("supervisor123"),
             fl_ativo=True,
             roles=[role_supervisor],
-            unidadeSaude=[unidade3]
+            unidadeSaude=[unidade3],
         )
         session.add_all([usuario1, usuario2, usuario3, usuario4, usuario5])
         await session.commit()
@@ -187,7 +192,7 @@ async def populate_db():
             LocalLesao(nome="Tornozelo direito"),
             LocalLesao(nome="Tornozelo esquerdo"),
             LocalLesao(nome="Pé direito"),
-            LocalLesao(nome="Pé esquerdo")
+            LocalLesao(nome="Pé esquerdo"),
         ]
 
         session.add_all(novos_locais)
@@ -200,9 +205,16 @@ async def populate_db():
 
         # Supondo que a lista de nomes dos pacientes já esteja definida
         nomes_pacientes = [
-            "João da Silva", "Maria Souza", "Pedro Oliveira", "Ana Costa", 
-            "Carlos Mendes", "Beatriz Rocha", "Rafael Lima", "Fernanda Dias", 
-            "Lucas Pires", "Juliana Almeida"
+            "João da Silva",
+            "Maria Souza",
+            "Pedro Oliveira",
+            "Ana Costa",
+            "Carlos Mendes",
+            "Beatriz Rocha",
+            "Rafael Lima",
+            "Fernanda Dias",
+            "Lucas Pires",
+            "Juliana Almeida",
         ]
         # Supondo que os usuários já foram criados e estão disponíveis
         result = await session.execute(select(User))
@@ -223,7 +235,7 @@ async def populate_db():
                 endereco_paciente=f"Rua Exemplo, {100 + i} - Bairro Exemplo, Cidade Exemplo",
                 telefone_paciente=f"1198765432{i}",
                 email_paciente=f"{nomes_pacientes[i].split()[0].lower()}@exemplo.com",
-                autoriza_pesquisa=True
+                autoriza_pesquisa=True,
             )
             session.add(paciente)
             await session.commit()  # Para obter o id do paciente
@@ -254,86 +266,136 @@ async def populate_db():
                 ciruturgias_dermatologicas=random.choice([True, False]),
                 tipo_procedimento="",
                 pratica_atividade_fisica=random.choice([True, False]),
-                frequencia_atividade_fisica=random.choice(["Diária", "Frequente", "Moderada", "Ocasional"])
+                frequencia_atividade_fisica=random.choice(
+                    ["Diária", "Frequente", "Moderada", "Ocasional"]
+                ),
             )
             session.add(saude_geral)
             await session.commit()
 
             # Cria um objeto AvaliacaoFototipo com valores válidos conforme as restrições
             avaliacao_fototipo = AvaliacaoFototipo(
-                cor_pele=4,              # valor válido conforme a restrição [0,2,4,8,12,16,20]
-                cor_olhos=2,             # valor válido na lista [0,1,2,3,4]
-                cor_cabelo=1,            # valor válido na lista [0,1,2,3,4]
-                quantidade_sardas=1,     # valor válido na lista [0,1,2,3]
-                reacao_sol=4,            # valor válido na lista [0,2,4,6,8]
-                bronzeamento=2,          # valor válido na lista [0,2,4,6]
-                sensibilidade_solar=1    # valor válido na lista [0,1,2,3,4]
+                cor_pele=4,  # valor válido conforme a restrição [0,2,4,8,12,16,20]
+                cor_olhos=2,  # valor válido na lista [0,1,2,3,4]
+                cor_cabelo=1,  # valor válido na lista [0,1,2,3,4]
+                quantidade_sardas=1,  # valor válido na lista [0,1,2,3]
+                reacao_sol=4,  # valor válido na lista [0,2,4,6,8]
+                bronzeamento=2,  # valor válido na lista [0,2,4,6]
+                sensibilidade_solar=1,  # valor válido na lista [0,1,2,3,4]
             )
             session.add(avaliacao_fototipo)
             await session.commit()
 
-            
             # Cria um objeto HistoricoCancerPele com valores fictícios
             tem_historico_familiar = random.choice([True, False])
             historico_cancer_pele = HistoricoCancerPele(
                 historico_familiar=tem_historico_familiar,
-                grau_parentesco=random.choice(['Pai', 'Mãe', 'Avô/Avó', 'Irmão/Irmã', 'Outro']) if tem_historico_familiar else None,
-                tipo_cancer_familiar=random.choice(['Melanoma', 'Carcinoma Basocelular', 'Carcinoma Espinocelular', 'Outro']) if tem_historico_familiar else None,
-                tipo_cancer_familiar_outro="Cancer de pele raro" if tem_historico_familiar and random.choice([True, False]) else None,
-                
+                grau_parentesco=(
+                    random.choice(["Pai", "Mãe", "Avô/Avó", "Irmão/Irmã", "Outro"])
+                    if tem_historico_familiar
+                    else None
+                ),
+                tipo_cancer_familiar=(
+                    random.choice(
+                        [
+                            "Melanoma",
+                            "Carcinoma Basocelular",
+                            "Carcinoma Espinocelular",
+                            "Outro",
+                        ]
+                    )
+                    if tem_historico_familiar
+                    else None
+                ),
+                tipo_cancer_familiar_outro=(
+                    "Cancer de pele raro"
+                    if tem_historico_familiar and random.choice([True, False])
+                    else None
+                ),
                 diagnostico_pessoal=random.choice([True, False]),
-                tipo_cancer_pessoal=random.choice(['Melanoma', 'Carcinoma Basocelular', 'Carcinoma Espinocelular', 'Outro']) if random.choice([True, False]) else None,
+                tipo_cancer_pessoal=(
+                    random.choice(
+                        [
+                            "Melanoma",
+                            "Carcinoma Basocelular",
+                            "Carcinoma Espinocelular",
+                            "Outro",
+                        ]
+                    )
+                    if random.choice([True, False])
+                    else None
+                ),
                 tipo_cancer_pessoal_outro=None,
-                
                 lesoes_precancerigenas=random.choice([True, False]),
                 tratamento_lesoes=random.choice([True, False]),
-                tipo_tratamento=random.choice(['Cirurgia', 'Crioterapia', 'Radioterapia', 'Outro']) if random.choice([True, False]) else None,
-                tipo_tratamento_outro=None
+                tipo_tratamento=(
+                    random.choice(["Cirurgia", "Crioterapia", "Radioterapia", "Outro"])
+                    if random.choice([True, False])
+                    else None
+                ),
+                tipo_tratamento_outro=None,
             )
             session.add(historico_cancer_pele)
             await session.commit()
-            
+
             # Cria um objeto FatoresRiscoProtecao com valores fictícios
             exposicao_solar = random.choice([True, False])
             fatores_risco_protecao = FatoresRiscoProtecao(
                 exposicao_solar_prolongada=exposicao_solar,
-                frequencia_exposicao_solar=random.choice(['Diariamente', 'Algumas vezes por semana', 'Ocasionalmente']) if exposicao_solar else None,
-                
+                frequencia_exposicao_solar=(
+                    random.choice(
+                        ["Diariamente", "Algumas vezes por semana", "Ocasionalmente"]
+                    )
+                    if exposicao_solar
+                    else None
+                ),
                 queimaduras_graves=random.choice([True, False]),
-                quantidade_queimaduras=random.choice(['1-2', '3-5', 'Mais de 5']) if random.choice([True, False]) else None,
-                
+                quantidade_queimaduras=(
+                    random.choice(["1-2", "3-5", "Mais de 5"])
+                    if random.choice([True, False])
+                    else None
+                ),
                 uso_protetor_solar=random.choice([True, False]),
-                fator_protecao_solar=random.choice(['15', '30', '50', '70', '100 ou mais']) if random.choice([True, False]) else None,
-                
+                fator_protecao_solar=(
+                    random.choice(["15", "30", "50", "70", "100 ou mais"])
+                    if random.choice([True, False])
+                    else None
+                ),
                 uso_chapeu_roupa_protecao=random.choice([True, False]),
-                
                 bronzeamento_artificial=random.choice([True, False]),
-                
                 checkups_dermatologicos=random.choice([True, False]),
-                frequencia_checkups=random.choice(['Anualmente', 'A cada 6 meses', 'Outro']) if random.choice([True, False]) else None,
+                frequencia_checkups=(
+                    random.choice(["Anualmente", "A cada 6 meses", "Outro"])
+                    if random.choice([True, False])
+                    else None
+                ),
                 frequencia_checkups_outro=None,
-                
-                participacao_campanhas_prevencao=random.choice([True, False])
+                participacao_campanhas_prevencao=random.choice([True, False]),
             )
             session.add(fatores_risco_protecao)
             await session.commit()
-            
+
             # Cria um objeto InvestigacaoLesoesSuspeitas com valores fictícios
             investigacao_lesoes = InvestigacaoLesoesSuspeitas(
                 mudanca_pintas_manchas=random.choice([True, False]),
                 sintomas_lesoes=random.choice([True, False]),
-                
-                tempo_alteracoes=random.choice(['Menos de 1 mês', '1-3 meses', '3-6 meses', 'Mais de 6 meses']) if random.choice([True, False]) else None,
-                
+                tempo_alteracoes=(
+                    random.choice(
+                        ["Menos de 1 mês", "1-3 meses", "3-6 meses", "Mais de 6 meses"]
+                    )
+                    if random.choice([True, False])
+                    else None
+                ),
                 caracteristicas_lesoes=random.choice([True, False]),
-                
                 consulta_medica=random.choice([True, False]),
-                diagnostico_lesoes="Lesão benigna, apenas monitoramento recomendado" if random.choice([True, False]) else None
+                diagnostico_lesoes=(
+                    "Lesão benigna, apenas monitoramento recomendado"
+                    if random.choice([True, False])
+                    else None
+                ),
             )
             session.add(investigacao_lesoes)
             await session.commit()
-
-
 
             # Cria o atendimento relacionando os objetos acima
             atendimento = Atendimento(
@@ -342,7 +404,7 @@ async def populate_db():
                 termo_consentimento_id=termo.id,
                 saude_geral_id=saude_geral.id,
                 avaliacao_fototipo_id=avaliacao_fototipo.id,
-                unidade_saude_id=usuario_atendimento.unidadeSaude[0].id
+                unidade_saude_id=usuario_atendimento.unidadeSaude[0].id,
             )
             session.add(atendimento)
             await session.commit()
@@ -356,7 +418,7 @@ async def populate_db():
                 registro_lesao = RegistroLesoes(
                     local_lesao_id=local.id,  # Utiliza o id do local predefinido
                     descricao_lesao=f"Lesão observada na região {local.nome} com sinais de cicatrização.",
-                    atendimento_id=atendimento.id
+                    atendimento_id=atendimento.id,
                 )
                 session.add(registro_lesao)
                 await session.commit()
@@ -364,8 +426,7 @@ async def populate_db():
                 # Cria uma imagem associada a este registro de lesão
                 imagem = RegistroLesoesImagens(
                     arquivo_path=f"http://exemplo.com/imagens/lesao_{paciente.id}_{j+1}.jpg",
-                    registro_lesoes_id=registro_lesao.id
+                    registro_lesoes_id=registro_lesao.id,
                 )
                 session.add(imagem)
                 await session.commit()
-                

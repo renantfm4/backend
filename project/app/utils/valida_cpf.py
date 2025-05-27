@@ -1,12 +1,12 @@
 def valida_cpf(cpf: str) -> bool:
-    cpf = ''.join(filter(str.isdigit, cpf))
-    
+    cpf = "".join(filter(str.isdigit, cpf))
+
     if len(cpf) != 11:
         return False
-    
+
     if cpf == cpf[0] * 11:
         return False
-    
+
     soma = sum(int(cpf[i]) * (10 - i) for i in range(9))
     primeiro_digito = (soma * 10 % 11) % 10
 

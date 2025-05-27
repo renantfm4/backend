@@ -10,7 +10,7 @@ from sqlalchemy.orm import Session
 from passlib.context import CryptContext
 
 
-SECRET_KEY = "sua-chave-secreta-muito-complexa"  
+SECRET_KEY = "sua-chave-secreta-muito-complexa"
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 60 * 24 * 7
 REFRESH_TOKEN_EXPIRE_MINUTES = 60 * 24 * 7  # 7 dias

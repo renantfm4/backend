@@ -1,0 +1,11 @@
+[MASTER]
+# Ignorar diretórios como testes ou ambientes virtuais
+ignore=tests,venv
+
+[MESSAGES CONTROL]
+# Desativar mensagens específicas
+disable=E0401, W0621, W0613
+
+[REPORTS]
+# Formato de saída
+output-format=text

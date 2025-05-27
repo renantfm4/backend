@@ -5,7 +5,19 @@ from sqlalchemy.future import select
 from ...database.database import get_db
 from ...core.hierarchy import require_role, RoleEnum
 from ...database import models
-from ...database.schemas import PacienteCreateSchema, TermoConsentimentoCreateSchema, SaudeGeralCreateSchema, AvaliacaoFototipoCreateSchema, RegistroLesoesCreateSchema, RegistroLesoesCreateSchema, LocalLesaoSchema, HistoricoCancerPeleCreateSchema, FatoresRiscoProtecaoCreateSchema, InvestigacaoLesoesSuspeitasCreateSchema, InformacoesCompletasCreateSchema
+from ...database.schemas import (
+    PacienteCreateSchema,
+    TermoConsentimentoCreateSchema,
+    SaudeGeralCreateSchema,
+    AvaliacaoFototipoCreateSchema,
+    RegistroLesoesCreateSchema,
+    RegistroLesoesCreateSchema,
+    LocalLesaoSchema,
+    HistoricoCancerPeleCreateSchema,
+    FatoresRiscoProtecaoCreateSchema,
+    InvestigacaoLesoesSuspeitasCreateSchema,
+    InformacoesCompletasCreateSchema,
+)
 from ...utils.minio import upload_to_minio
 from ...utils.detectar_lesao import classificar_tipo_lesao
 from ...utils.machine_learning import classificar_imagem_pele
@@ -13,14 +25,17 @@ from ...utils.qualidade_imagem import avaliar_qualidade_imagem
 
 router = APIRouter()
 
+
 @router.post("/cadastrar-paciente", status_code=201)
 async def cadastrar_paciente(
     paciente_data: PacienteCreateSchema,
     db: AsyncSession = Depends(get_db),
-    current_user: models.User = Depends(require_role(RoleEnum.PESQUISADOR))
+    current_user: models.User = Depends(require_role(RoleEnum.PESQUISADOR)),
 ):
     # Check if patient already exists
-    stmt = select(models.Paciente).filter(models.Paciente.cpf_paciente == paciente_data.cpf_paciente)
+    stmt = select(models.Paciente).filter(
+        models.Paciente.cpf_paciente == paciente_data.cpf_paciente
+    )
     result = await db.execute(stmt)
     existing_paciente = result.scalars().first()
 
@@ -39,13 +54,13 @@ async def cadastrar_paciente(
         telefone_paciente=paciente_data.telefone_paciente,
         email_paciente=paciente_data.email_paciente,
         autoriza_pesquisa=paciente_data.autoriza_pesquisa,
-        id_usuario_criacao=current_user.id
+        id_usuario_criacao=current_user.id,
     )
-    
+
     db.add(new_paciente)
     await db.commit()
     await db.refresh(new_paciente)
-    
+
     return {
         "id": new_paciente.id,
         "nome_paciente": new_paciente.nome_paciente,
@@ -57,14 +72,15 @@ async def cadastrar_paciente(
         "endereco_paciente": new_paciente.endereco_paciente,
         "telefone_paciente": new_paciente.telefone_paciente,
         "email_paciente": new_paciente.email_paciente,
-        "autoriza_pesquisa": new_paciente.autoriza_pesquisa
+        "autoriza_pesquisa": new_paciente.autoriza_pesquisa,
     }
+
 
 @router.post("/cadastrar-atendimento", status_code=201)
 async def cadastrar_atendimento(
     paciente_id: int,
     db: AsyncSession = Depends(get_db),
-    current_user: models.User = Depends(require_role(RoleEnum.PESQUISADOR))
+    current_user: models.User = Depends(require_role(RoleEnum.PESQUISADOR)),
 ):
     stmt = select(models.Paciente).filter(models.Paciente.id == paciente_id)
     result = await db.execute(stmt)
@@ -73,20 +89,25 @@ async def cadastrar_atendimento(
     if not paciente:
         raise HTTPException(status_code=404, detail="Paciente não encontrado")
 
-    stmt_unidade = select(models.UnidadeSaude).join(models.User.unidadeSaude).filter(
-        models.User.id == current_user.id
+    stmt_unidade = (
+        select(models.UnidadeSaude)
+        .join(models.User.unidadeSaude)
+        .filter(models.User.id == current_user.id)
     )
     result_unidade = await db.execute(stmt_unidade)
     unidade_saude = result_unidade.scalars().first()
 
     if not unidade_saude:
-        raise HTTPException(status_code=403, detail="Usuário não está associado a nenhuma unidade de saúde")
+        raise HTTPException(
+            status_code=403,
+            detail="Usuário não está associado a nenhuma unidade de saúde",
+        )
 
     new_atendimento = models.Atendimento(
         paciente_id=paciente_id,
         user_id=current_user.id,
         unidade_saude_id=unidade_saude.id,
-        id_usuario_criacao=current_user.id
+        id_usuario_criacao=current_user.id,
     )
 
     db.add(new_atendimento)
@@ -100,7 +121,7 @@ async def cadastrar_atendimento(
         "cpf_paciente": paciente.cpf_paciente,
         "data_atendimento": new_atendimento.data_atendimento,
         "unidade_saude_id": unidade_saude.id,
-        "unidade_saude_nome": unidade_saude.nome_unidade_saude
+        "unidade_saude_nome": unidade_saude.nome_unidade_saude,
     }
 
 
@@ -108,7 +129,7 @@ async def cadastrar_atendimento(
 async def get_paciente_by_cpf(
     cpf_paciente: str = Query(..., description="CPF do paciente"),
     db: AsyncSession = Depends(get_db),
-    current_user: models.User = Depends(require_role(RoleEnum.PESQUISADOR))
+    current_user: models.User = Depends(require_role(RoleEnum.PESQUISADOR)),
 ):
     stmt = select(models.Paciente).filter(models.Paciente.cpf_paciente == cpf_paciente)
     result = await db.execute(stmt)
@@ -128,17 +149,16 @@ async def get_paciente_by_cpf(
         "endereco_paciente": paciente.endereco_paciente,
         "telefone_paciente": paciente.telefone_paciente,
         "email_paciente": paciente.email_paciente,
-        "autoriza_pesquisa": paciente.autoriza_pesquisa
+        "autoriza_pesquisa": paciente.autoriza_pesquisa,
     }
 
 
-
-@router.post("/cadastrar-termo-consentimento") 
-async def cadastrar_termo_consentimento( 
+@router.post("/cadastrar-termo-consentimento")
+async def cadastrar_termo_consentimento(
     atendimento_id: int,
     file: UploadFile = File(...),
     db: AsyncSession = Depends(get_db),
-    current_user: models.User = Depends(require_role(RoleEnum.PESQUISADOR))
+    current_user: models.User = Depends(require_role(RoleEnum.PESQUISADOR)),
 ):
 
     # Verifica se o atendimento existe
@@ -148,9 +168,11 @@ async def cadastrar_termo_consentimento(
 
     if not atendimento:
         raise HTTPException(status_code=404, detail="Atendimento não encontrado")
-    
+
     if atendimento.termo_consentimento_id:
-        raise HTTPException(status_code=400, detail="Atendimento já possui um termo de consentimento")
+        raise HTTPException(
+            status_code=400, detail="Atendimento já possui um termo de consentimento"
+        )
 
     arquivo_metadata = await upload_to_minio(file, folder_name="termos-consentimento")
 
@@ -171,22 +193,23 @@ async def cadastrar_termo_consentimento(
         "message": "Termo de Consentimento cadastrado com sucesso!",
         "termo_consentimento": {
             "id": new_termo.id,
-            "arquivo_path": arquivo_metadata["url"]
-        }
+            "arquivo_path": arquivo_metadata["url"],
+        },
     }
+
 
 @router.post("/cadastrar-informacoes-completas")
 async def cadastrar_informacoes_completas(
     dados: InformacoesCompletasCreateSchema,
     atendimento_id: int,
     db: AsyncSession = Depends(get_db),
-    current_user: models.User = Depends(require_role(RoleEnum.PESQUISADOR))
+    current_user: models.User = Depends(require_role(RoleEnum.PESQUISADOR)),
 ):
     # 1. Buscar o atendimento
     stmt = select(models.Atendimento).filter(models.Atendimento.id == atendimento_id)
     result = await db.execute(stmt)
     atendimento = result.scalars().first()
-    
+
     if not atendimento:
         raise HTTPException(status_code=404, detail="Atendimento não encontrado")
 
@@ -200,8 +223,11 @@ async def cadastrar_informacoes_completas(
     # 2. Se vier "saude_geral" no payload, faz a criação:
     if dados.saude_geral:
         if atendimento.saude_geral_id:
-            raise HTTPException(status_code=400, detail="Atendimento já possui informações de Saúde Geral")
-        
+            raise HTTPException(
+                status_code=400,
+                detail="Atendimento já possui informações de Saúde Geral",
+            )
+
         new_saude_geral = models.SaudeGeral(
             doencas_cronicas=dados.saude_geral.doencas_cronicas,
             hipertenso=dados.saude_geral.hipertenso,
@@ -217,7 +243,7 @@ async def cadastrar_informacoes_completas(
             ciruturgias_dermatologicas=dados.saude_geral.ciruturgias_dermatologicas,
             tipo_procedimento=dados.saude_geral.tipo_procedimento,
             pratica_atividade_fisica=dados.saude_geral.pratica_atividade_fisica,
-            frequencia_atividade_fisica=dados.saude_geral.frequencia_atividade_fisica
+            frequencia_atividade_fisica=dados.saude_geral.frequencia_atividade_fisica,
         )
         db.add(new_saude_geral)
         await db.commit()
@@ -242,18 +268,33 @@ async def cadastrar_informacoes_completas(
         if dados.avaliacao_fototipo.cor_olhos not in valid_cor_olhos:
             raise HTTPException(status_code=400, detail="Valor inválido para cor_olhos")
         if dados.avaliacao_fototipo.cor_cabelo not in valid_cor_cabelo:
-            raise HTTPException(status_code=400, detail="Valor inválido para cor_cabelo")
+            raise HTTPException(
+                status_code=400, detail="Valor inválido para cor_cabelo"
+            )
         if dados.avaliacao_fototipo.quantidade_sardas not in valid_quantidade_sardas:
-            raise HTTPException(status_code=400, detail="Valor inválido para quantidade_sardas")
+            raise HTTPException(
+                status_code=400, detail="Valor inválido para quantidade_sardas"
+            )
         if dados.avaliacao_fototipo.reacao_sol not in valid_reacao_sol:
-            raise HTTPException(status_code=400, detail="Valor inválido para reacao_sol")
+            raise HTTPException(
+                status_code=400, detail="Valor inválido para reacao_sol"
+            )
         if dados.avaliacao_fototipo.bronzeamento not in valid_bronzeamento:
-            raise HTTPException(status_code=400, detail="Valor inválido para bronzeamento")
-        if dados.avaliacao_fototipo.sensibilidade_solar not in valid_sensibilidade_solar:
-            raise HTTPException(status_code=400, detail="Valor inválido para sensibilidade_solar")
+            raise HTTPException(
+                status_code=400, detail="Valor inválido para bronzeamento"
+            )
+        if (
+            dados.avaliacao_fototipo.sensibilidade_solar
+            not in valid_sensibilidade_solar
+        ):
+            raise HTTPException(
+                status_code=400, detail="Valor inválido para sensibilidade_solar"
+            )
 
         if atendimento.avaliacao_fototipo_id:
-            raise HTTPException(status_code=400, detail="Atendimento já possui avaliação de fototipo")
+            raise HTTPException(
+                status_code=400, detail="Atendimento já possui avaliação de fototipo"
+            )
 
         new_fototipo = models.AvaliacaoFototipo(
             cor_pele=dados.avaliacao_fototipo.cor_pele,
@@ -262,7 +303,7 @@ async def cadastrar_informacoes_completas(
             quantidade_sardas=dados.avaliacao_fototipo.quantidade_sardas,
             reacao_sol=dados.avaliacao_fototipo.reacao_sol,
             bronzeamento=dados.avaliacao_fototipo.bronzeamento,
-            sensibilidade_solar=dados.avaliacao_fototipo.sensibilidade_solar
+            sensibilidade_solar=dados.avaliacao_fototipo.sensibilidade_solar,
         )
         db.add(new_fototipo)
         await db.commit()
@@ -274,7 +315,10 @@ async def cadastrar_informacoes_completas(
     # 4. Histórico de câncer de pele
     if dados.historico_cancer_pele:
         if atendimento.historico_cancer_pele_id:
-            raise HTTPException(status_code=400, detail="Atendimento já possui histórico de câncer de pele")
+            raise HTTPException(
+                status_code=400,
+                detail="Atendimento já possui histórico de câncer de pele",
+            )
 
         new_historico = models.HistoricoCancerPele(
             historico_familiar=dados.historico_cancer_pele.historico_familiar,
@@ -287,7 +331,7 @@ async def cadastrar_informacoes_completas(
             lesoes_precancerigenas=dados.historico_cancer_pele.lesoes_precancerigenas,
             tratamento_lesoes=dados.historico_cancer_pele.tratamento_lesoes,
             tipo_tratamento=dados.historico_cancer_pele.tipo_tratamento,
-            tipo_tratamento_outro=dados.historico_cancer_pele.tipo_tratamento_outro
+            tipo_tratamento_outro=dados.historico_cancer_pele.tipo_tratamento_outro,
         )
         db.add(new_historico)
         await db.commit()
@@ -299,7 +343,10 @@ async def cadastrar_informacoes_completas(
     # 5. Fatores de risco e proteção
     if dados.fatores_risco_protecao:
         if atendimento.fatores_risco_protecao_id:
-            raise HTTPException(status_code=400, detail="Atendimento já possui fatores de risco e proteção")
+            raise HTTPException(
+                status_code=400,
+                detail="Atendimento já possui fatores de risco e proteção",
+            )
 
         new_fatores = models.FatoresRiscoProtecao(
             exposicao_solar_prolongada=dados.fatores_risco_protecao.exposicao_solar_prolongada,
@@ -312,7 +359,7 @@ async def cadastrar_informacoes_completas(
             bronzeamento_artificial=dados.fatores_risco_protecao.bronzeamento_artificial,
             checkups_dermatologicos=dados.fatores_risco_protecao.checkups_dermatologicos,
             frequencia_checkups=dados.fatores_risco_protecao.frequencia_checkups,
-            participacao_campanhas_prevencao=dados.fatores_risco_protecao.participacao_campanhas_prevencao
+            participacao_campanhas_prevencao=dados.fatores_risco_protecao.participacao_campanhas_prevencao,
         )
         db.add(new_fatores)
         await db.commit()
@@ -324,7 +371,10 @@ async def cadastrar_informacoes_completas(
     # 6. Investigação de lesões suspeitas
     if dados.investigacao_lesoes_suspeitas:
         if atendimento.investigacao_lesoes_suspeitas_id:
-            raise HTTPException(status_code=400, detail="Atendimento já possui investigação de lesões suspeitas")
+            raise HTTPException(
+                status_code=400,
+                detail="Atendimento já possui investigação de lesões suspeitas",
+            )
 
         new_investigacao = models.InvestigacaoLesoesSuspeitas(
             mudanca_pintas_manchas=dados.investigacao_lesoes_suspeitas.mudanca_pintas_manchas,
@@ -332,7 +382,7 @@ async def cadastrar_informacoes_completas(
             tempo_alteracoes=dados.investigacao_lesoes_suspeitas.tempo_alteracoes,
             caracteristicas_lesoes=dados.investigacao_lesoes_suspeitas.caracteristicas_lesoes,
             consulta_medica=dados.investigacao_lesoes_suspeitas.consulta_medica,
-            diagnostico_lesoes=dados.investigacao_lesoes_suspeitas.diagnostico_lesoes
+            diagnostico_lesoes=dados.investigacao_lesoes_suspeitas.diagnostico_lesoes,
         )
         db.add(new_investigacao)
         await db.commit()
@@ -351,28 +401,33 @@ async def cadastrar_informacoes_completas(
         "avaliacao_fototipo": fototipo_criado,
         "historico_cancer_pele": historico_cancer_criado,
         "fatores_risco_protecao": fatores_risco_criado,
-        "investigacao_lesoes_suspeitas": investigacao_lesoes_criada
+        "investigacao_lesoes_suspeitas": investigacao_lesoes_criada,
     }
-
 
 
 @router.get("/listar-atendimentos-usuario-logado")
 async def listar_atendimentos_usuario_logado(
     db: AsyncSession = Depends(get_db),
-    current_user: models.User = Depends(require_role(RoleEnum.PESQUISADOR))
+    current_user: models.User = Depends(require_role(RoleEnum.PESQUISADOR)),
 ):
 
     stmt = (
-        select(models.Atendimento, models.Paciente.nome_paciente, models.Paciente.cpf_paciente)
+        select(
+            models.Atendimento,
+            models.Paciente.nome_paciente,
+            models.Paciente.cpf_paciente,
+        )
         .join(models.Paciente, models.Atendimento.paciente_id == models.Paciente.id)
         .filter(models.Atendimento.user_id == current_user.id)
     )
-    
+
     result = await db.execute(stmt)
     atendimentos = result.all()
 
     if not atendimentos:
-        raise HTTPException(status_code=404, detail="Nenhum atendimento encontrado para este usuário.")
+        raise HTTPException(
+            status_code=404, detail="Nenhum atendimento encontrado para este usuário."
+        )
 
     atendimentos_list = [
         {
@@ -383,12 +438,13 @@ async def listar_atendimentos_usuario_logado(
             "cpf_paciente": atendimento.cpf_paciente,
             "termo_consentimento_id": atendimento.Atendimento.termo_consentimento_id,
             "saude_geral_id": atendimento.Atendimento.saude_geral_id,
-            "avaliacao_fototipo_id": atendimento.Atendimento.avaliacao_fototipo_id
+            "avaliacao_fototipo_id": atendimento.Atendimento.avaliacao_fototipo_id,
         }
         for atendimento in atendimentos
     ]
 
     return atendimentos_list
+
 
 @router.post("/cadastrar-lesao")
 async def cadastrar_lesao(
@@ -397,7 +453,7 @@ async def cadastrar_lesao(
     descricao_lesao: str = Form(...),
     files: List[UploadFile] = File(None),
     db: AsyncSession = Depends(get_db),
-    current_user: models.User = Depends(require_role(RoleEnum.PESQUISADOR))
+    current_user: models.User = Depends(require_role(RoleEnum.PESQUISADOR)),
 ):
     # Verifica se atendimento existe
     stmt = select(models.Atendimento).filter(models.Atendimento.id == atendimento_id)
@@ -408,7 +464,9 @@ async def cadastrar_lesao(
         raise HTTPException(status_code=404, detail="Atendimento não encontrado")
 
     # Verifica se local_lesao existe
-    stmt_local = select(models.LocalLesao).filter(models.LocalLesao.id == local_lesao_id)
+    stmt_local = select(models.LocalLesao).filter(
+        models.LocalLesao.id == local_lesao_id
+    )
     result_local = await db.execute(stmt_local)
     local_lesao = result_local.scalar_one_or_none()
 
@@ -419,7 +477,7 @@ async def cadastrar_lesao(
     new_lesao = models.RegistroLesoes(
         local_lesao_id=local_lesao_id,
         descricao_lesao=descricao_lesao,
-        atendimento_id=atendimento.id
+        atendimento_id=atendimento.id,
     )
     db.add(new_lesao)
     await db.commit()
@@ -434,25 +492,27 @@ async def cadastrar_lesao(
         for file in files:
             file_content = await file.read()
             qualidade = avaliar_qualidade_imagem(file_content)
-            
+
             if qualidade["qualidade"] != "boa":
                 erro_msg = qualidade.get("erro", "Qualidade inferior a boa.")
                 raise HTTPException(
                     status_code=400,
-                    detail=f"A imagem '{file.filename}' foi rejeitada: {erro_msg} (score: {qualidade.get('score')}). Envie apenas imagens com qualidade boa."
+                    detail=f"A imagem '{file.filename}' foi rejeitada: {erro_msg} (score: {qualidade.get('score')}). Envie apenas imagens com qualidade boa.",
                 )
-            
+
             file.file.seek(0)
 
         for file in files:
             try:
-                arquivo_metadata = await upload_to_minio(file, folder_name="imagens-lesoes")
+                arquivo_metadata = await upload_to_minio(
+                    file, folder_name="imagens-lesoes"
+                )
                 imagens_urls.append(arquivo_metadata["url"])
                 print(f"Imagem {file.filename} carregada com sucesso para o MinIO.")
 
                 new_imagem = models.RegistroLesoesImagens(
                     arquivo_path=arquivo_metadata["url"],
-                    registro_lesoes_id=new_lesao.id
+                    registro_lesoes_id=new_lesao.id,
                 )
                 db.add(new_imagem)
 
@@ -483,54 +543,60 @@ async def cadastrar_lesao(
         "imagens": imagens_urls,
         "tipos": tipos,
         "prediagnosticos": diagnosticos,
-        "descricoes-lesao": descricoes_lesao
-        }
+        "descricoes-lesao": descricoes_lesao,
+    }
+
 
 @router.get("/listar-lesoes/{atendimento_id}")
 async def listar_lesoes(
     atendimento_id: int,
     db: AsyncSession = Depends(get_db),
-    current_user: models.User = Depends(require_role(RoleEnum.PESQUISADOR))
+    current_user: models.User = Depends(require_role(RoleEnum.PESQUISADOR)),
 ):
-    stmt = (
-        select(models.RegistroLesoes)
-        .filter(models.RegistroLesoes.atendimento_id == atendimento_id)
+    stmt = select(models.RegistroLesoes).filter(
+        models.RegistroLesoes.atendimento_id == atendimento_id
     )
     result = await db.execute(stmt)
     lesoes = result.scalars().all()
 
     if not lesoes:
-        raise HTTPException(status_code=404, detail="Nenhuma lesão encontrada para este atendimento.")
+        raise HTTPException(
+            status_code=404, detail="Nenhuma lesão encontrada para este atendimento."
+        )
 
     lesoes_list = []
 
     for lesao in lesoes:
         # Obtendo imagens associadas à lesão
-        stmt_imagens = (
-            select(models.RegistroLesoesImagens)
-            .filter(models.RegistroLesoesImagens.registro_lesoes_id == lesao.id)
+        stmt_imagens = select(models.RegistroLesoesImagens).filter(
+            models.RegistroLesoesImagens.registro_lesoes_id == lesao.id
         )
         result_imagens = await db.execute(stmt_imagens)
         imagens = result_imagens.scalars().all()
-        
+
         # Get local lesao name if available
         local_lesao_name = None
         if lesao.local_lesao_id:
-            stmt_local = select(models.LocalLesao).filter(models.LocalLesao.id == lesao.local_lesao_id)
+            stmt_local = select(models.LocalLesao).filter(
+                models.LocalLesao.id == lesao.local_lesao_id
+            )
             result_local = await db.execute(stmt_local)
             local_obj = result_local.scalar_one_or_none()
             if local_obj:
                 local_lesao_name = local_obj.nome
 
-        lesoes_list.append({
-            "id": lesao.id,
-            "local_lesao_id": lesao.local_lesao_id,
-            "local_lesao_nome": local_lesao_name,
-            "descricao_lesao": lesao.descricao_lesao,
-            "imagens": [imagem.arquivo_path for imagem in imagens]
-        })
+        lesoes_list.append(
+            {
+                "id": lesao.id,
+                "local_lesao_id": lesao.local_lesao_id,
+                "local_lesao_nome": local_lesao_name,
+                "descricao_lesao": lesao.descricao_lesao,
+                "imagens": [imagem.arquivo_path for imagem in imagens],
+            }
+        )
 
     return lesoes_list
+
 
 @router.get("/locais-lesao", response_model=List[LocalLesaoSchema])
 async def get_locais_lesao(db: AsyncSession = Depends(get_db)):
